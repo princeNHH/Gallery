@@ -10,7 +10,7 @@
     <FrameLayout
         android:id="@+id/tool_bar"
         android:layout_width="match_parent"
-        android:layout_height="80dp">
+        android:layout_height="@dimen/tool_bar_height">
 
         <TextView
             android:id="@+id/select_text"
@@ -26,20 +26,20 @@
     </FrameLayout>
 
     <FrameLayout
-        android:id="@+id/content_layout"
+        android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingStart="10dp"
-        android:paddingTop="80dp"
-        android:paddingEnd="10dp" />
+        android:paddingTop="@dimen/tool_bar_height"
+        android:paddingHorizontal="10dp"/>
 
     <LinearLayout
         android:id="@+id/bottom_bar"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="@dimen/bottom_bar_height"
         android:layout_alignParentBottom="true"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp">
 
         <LinearLayout
             android:id="@+id/video_tab"
@@ -49,23 +49,23 @@
             android:clickable="true"
             android:focusable="true"
             android:orientation="vertical"
-            android:paddingStart="30dp"
-            android:paddingTop="10dp"
-            android:paddingEnd="30dp"
-            android:paddingBottom="10dp">
+            android:paddingStart="@dimen/sub_tab_padding_horizontal"
+            android:paddingTop="@dimen/sub_tab_padding_vertical"
+            android:paddingEnd="@dimen/sub_tab_padding_horizontal"
+            android:paddingBottom="@dimen/sub_tab_padding_vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Video"
                 android:textColor="@color/black"
-                android:textSize="18sp" />
+                android:textSize="@dimen/text_size_bottom_bar" />
 
             <FrameLayout
                 android:id="@+id/video_tab_underline"
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:background="@color/black" />
+                android:layout_height="@dimen/underline_height_bottom_bar"
+                android:background="#B3000000" />
         </LinearLayout>
 
         <LinearLayout
@@ -77,55 +77,24 @@
             android:clickable="true"
             android:focusable="true"
             android:orientation="vertical"
-            android:paddingStart="30dp"
-            android:paddingTop="10dp"
-            android:paddingEnd="30dp"
-            android:paddingBottom="10dp">
+            android:paddingStart="@dimen/sub_tab_padding_horizontal"
+            android:paddingTop="@dimen/sub_tab_padding_vertical"
+            android:paddingEnd="@dimen/sub_tab_padding_horizontal"
+            android:paddingBottom="@dimen/sub_tab_padding_vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Album"
                 android:textColor="@color/black"
-                android:textSize="18sp" />
+                android:textSize="@dimen/text_size_bottom_bar" />
 
             <FrameLayout
                 android:id="@+id/album_tab_underline"
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:background="@color/black" />
+                android:layout_height="@dimen/underline_height_bottom_bar"
+                android:background="#B3000000" />
         </LinearLayout>
     </LinearLayout>
-
-    <FrameLayout
-        android:id="@+id/player_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone">
-
-        <VideoView
-            android:id="@+id/player_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:paddingBottom="30dp" />
-
-        <FrameLayout
-            android:id="@+id/tool_bar_player"
-            android:layout_width="match_parent"
-            android:layout_height="80dp"
-            android:layout_gravity="top"
-            android:alpha="0.95"
-            android:background="@color/white"/>
-
-        <FrameLayout
-            android:id="@+id/bottom_bar_player"
-            android:layout_width="match_parent"
-            android:layout_height="80dp"
-            android:layout_gravity="bottom"
-            android:alpha="0.95"
-            android:background="@color/white" />
-
-    </FrameLayout>
 
 </RelativeLayout>

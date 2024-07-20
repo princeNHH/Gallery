@@ -1,95 +1,149 @@
 package com.example.gallery
 
-import android.annotation.SuppressLint
+import com.example.gallery.viewmodel.VideoViewModel
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.TextView
 import android.widget.VideoView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.media3.common.MediaItem
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.media3.common.util.Log
+import androidx.viewpager2.widget.ViewPager2
+import com.example.gallery.adapter.TimelineAdapter
 import com.example.gallery.databinding.ActivityMainBinding
 import com.example.gallery.fragment.AlbumFragment
 import com.example.gallery.fragment.TimelineFragment
+import com.example.gallery.fragment.ViewPagerFragment
 
-@UnstableApi
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private val TAG_TIMELINE_FRAGMENT = "TimelineFragment"
+    private lateinit var videoViewModel: VideoViewModel
+    private lateinit var timeLineAdapter: TimelineAdapter
     private var timelineFragment: TimelineFragment? = null
-    private lateinit var videoView: VideoView
+    private var albumFragment: AlbumFragment? = null
+    private var currentFragment: Fragment? = null
 
-    @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        if (savedInstanceState == null) {
-            timelineFragment = TimelineFragment()
-            addFragment(timelineFragment!!)
-        } else {
-            timelineFragment =
-                supportFragmentManager.findFragmentByTag(TAG_TIMELINE_FRAGMENT) as TimelineFragment?
-        }
+        videoViewModel = ViewModelProvider(this)[VideoViewModel::class.java]
+
+        timeLineAdapter = TimelineAdapter(emptyList(), this)
+
+        videoViewModel.listVideo.observe(this, Observer { videos ->
+            timeLineAdapter.submitList(videos)
+        })
+
+        timelineFragment = TimelineFragment(timeLineAdapter)
+        albumFragment = AlbumFragment()
 
         binding.videoTab.setOnClickListener {
-            if (timelineFragment == null) {
-                timelineFragment = TimelineFragment()
-                addFragment(timelineFragment!!)
-            } else {
-                showFragment(timelineFragment!!)
-            }
+            switchFragment(timelineFragment!!)
+            binding.videoTabUnderline.visibility = View.VISIBLE
+            binding.albumTabUnderline.visibility = View.GONE
         }
 
         binding.albumTab.setOnClickListener {
-            hideFragment(timelineFragment!!)
+            switchFragment(albumFragment!!)
+            binding.videoTabUnderline.visibility = View.GONE
+            binding.albumTabUnderline.visibility = View.VISIBLE
         }
 
-        videoView = binding.playerView
+        // Load initial fragment
+        switchFragment(timelineFragment!!)
+    }
 
-        // Get the video URL from Intent extras
-        val videoUrl = intent.getStringExtra("videoUrl")
-        if (videoUrl != null) {
-            playVideo(videoUrl)
+    private fun switchFragment(newFragment: Fragment) {
+        val transaction = supportFragmentManager.beginTransaction()
+
+        if (currentFragment != null) {
+            transaction.hide(currentFragment!!)
         }
-        setContentView(binding.root)
-    }
 
-    private fun playVideo(videoUrl: String) {
-        val uri = Uri.parse(videoUrl)
-        binding.playerLayout.visibility = View.VISIBLE
-        videoView.setVideoURI(uri)
-        videoView.setOnPreparedListener { mediaPlayer ->
-            mediaPlayer.isLooping = true  // Optionally loop the video
-            videoView.start()
+        if (!newFragment.isAdded) {
+            transaction.add(R.id.fragment_container, newFragment, newFragment::class.java.simpleName)
+        } else {
+            transaction.show(newFragment)
         }
-        videoView.setOnCompletionListener {
-            // Optionally handle video completion
+
+        transaction.commit()
+        currentFragment = newFragment
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkPermission()
+    }
+
+    private fun checkPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_MEDIA_VIDEO
+            ) == PackageManager.PERMISSION_GRANTED -> {
+            }
+            !ActivityCompat.shouldShowRequestPermissionRationale(
+                this, Manifest.permission.READ_MEDIA_VIDEO
+            ) -> {
+                requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_VIDEO)
+            }
+            else -> {
+                showPermissionSettingsDialog()
+            }
         }
     }
 
-    private fun addFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.content_layout, fragment)
-            .addToBackStack(null)
-            .commit()
+    private fun showPermissionSettingsDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_permission, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        dialogView.findViewById<TextView>(R.id.button_settings).setOnClickListener {
+            openAppSettings()
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<TextView>(R.id.button_exit).setOnClickListener {
+            dialog.dismiss()
+            finish()
+        }
+        dialog.window?.attributes?.gravity = Gravity.BOTTOM
+        dialog.setCancelable(false)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.attributes?.verticalMargin = 0.025f
+        dialog.show()
     }
 
-    private fun hideFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .hide(fragment)
-            .commit()
+    private fun openAppSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", packageName, null)
+        }
+        startActivity(intent)
     }
 
-    private fun showFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .show(fragment)
-            .commit()
-    }
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {}
 }
+
+

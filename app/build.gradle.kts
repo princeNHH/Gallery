@@ -52,4 +52,9 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-dash:1.3.1")
     implementation("androidx.media3:media3-ui:1.3.1")
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.3")
+    implementation("androidx.fragment:fragment-ktx:1.8.1")  // Phiên bản có thể khác
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3") // Phiên bản có thể khác
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
 }
