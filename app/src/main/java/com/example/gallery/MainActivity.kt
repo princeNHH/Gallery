@@ -100,6 +100,14 @@ class MainActivity : AppCompatActivity() {
         checkPermission()
     }
 
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            videoViewModel.loadVideos()
+        }
+    }
+
     private fun checkPermission() {
         when {
             ContextCompat.checkSelfPermission(
@@ -148,14 +156,6 @@ class MainActivity : AppCompatActivity() {
             data = Uri.fromParts("package", packageName, null)
         }
         startActivity(intent)
-    }
-
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            videoViewModel.loadVideos()
-        }
     }
 }
 

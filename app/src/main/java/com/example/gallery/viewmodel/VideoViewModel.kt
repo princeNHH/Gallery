@@ -38,31 +38,6 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
         getApplication<Application>().contentResolver.unregisterContentObserver(contentObserver)
     }
 
-    fun addVideo(video: MediaItem) {
-        val currentList = _listVideo.value?.toMutableList() ?: mutableListOf()
-        currentList.add(video)
-        _listVideo.value = currentList
-    }
-
-    fun removeVideo(video: MediaItem) {
-        val currentList = _listVideo.value?.toMutableList() ?: mutableListOf()
-        currentList.remove(video)
-        _listVideo.value = currentList
-    }
-
-    fun updateVideo(updatedVideo: MediaItem) {
-        val currentList = _listVideo.value?.toMutableList() ?: mutableListOf()
-        val index = currentList.indexOfFirst { it.mediaId == updatedVideo.mediaId }
-        if (index != -1) {
-            currentList[index] = updatedVideo
-            _listVideo.value = currentList
-        }
-    }
-
-    fun clearVideos() {
-        _listVideo.value = emptyList()
-    }
-
     fun loadVideos() {
         val listVideo = mutableListOf<MediaItem>()
         val projection = arrayOf(
@@ -106,5 +81,4 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
         }
         _listVideo.postValue(listVideo)
     }
-
 }

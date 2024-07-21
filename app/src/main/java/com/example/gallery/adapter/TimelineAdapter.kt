@@ -18,7 +18,8 @@ import com.bumptech.glide.request.RequestOptions
 import com.example.gallery.MainActivity
 import com.example.gallery.databinding.ItemVideoBinding
 
-class TimelineAdapter(private val videoList: List<MediaItem>, private val context: Context) : ListAdapter<MediaItem, TimelineAdapter.TimelineViewHolder>(VideoDiffCallback()) {
+class TimelineAdapter(private val videoList: List<MediaItem>, private val context: Context) :
+    ListAdapter<MediaItem, TimelineAdapter.TimelineViewHolder>(VideoDiffCallback()) {
 
     class TimelineViewHolder(val binding: ItemVideoBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -31,11 +32,10 @@ class TimelineAdapter(private val videoList: List<MediaItem>, private val contex
         return TimelineViewHolder(binding)
     }
 
-    @OptIn(UnstableApi::class)
     override fun onBindViewHolder(holder: TimelineViewHolder, position: Int) {
         val mediaItem = getItem(position)
-        val videoUri = mediaItem.playbackProperties?.uri
-        Log.d("Hiep", "Bind Timeline fragment")
+        val videoUri = mediaItem.localConfiguration?.uri
+
         Glide.with(holder.itemView.context)
             .load(videoUri)
             .apply(RequestOptions().frame(1000000)) // load frame at 1 second (adjust time as needed)
