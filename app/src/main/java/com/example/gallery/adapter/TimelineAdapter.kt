@@ -1,25 +1,30 @@
 package com.example.gallery.adapter
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
+import android.media.MediaMetadataRetriever
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.OptIn
+import android.widget.AdapterView
 import androidx.media3.common.MediaItem
-import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
-import com.example.gallery.MainActivity
 import com.example.gallery.databinding.ItemVideoBinding
 
 class TimelineAdapter(private val videoList: List<MediaItem>, private val context: Context) :
     ListAdapter<MediaItem, TimelineAdapter.TimelineViewHolder>(VideoDiffCallback()) {
+
+    private var onItemClickListener: OnItemClickListener? = null
+    private var onItemLongClickListener: OnItemLongClickListener? = null
+    private var isSelectionMode = false
+    private var selectedPosition: Int? = null
+    private var selectedItems = mutableSetOf<Int>()
 
     class TimelineViewHolder(val binding: ItemVideoBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -32,9 +37,26 @@ class TimelineAdapter(private val videoList: List<MediaItem>, private val contex
         return TimelineViewHolder(binding)
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: TimelineViewHolder, position: Int) {
         val mediaItem = getItem(position)
         val videoUri = mediaItem.localConfiguration?.uri
+        val retriever = MediaMetadataRetriever()
+        retriever.setDataSource(context, videoUri)
+        val videoDuration =
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()
+        val minutes = videoDuration?.div(1000)?.div(60)
+        val seconds = videoDuration?.div(1000)?.rem(60)
+        if (minutes != null && seconds != null) {
+            if (minutes < 10 && seconds < 10)
+                holder.binding.itemVideoDuration.text = "0$minutes:0$seconds"
+            else if (minutes < 10)
+                holder.binding.itemVideoDuration.text = "0$minutes:$seconds"
+            else if (seconds < 10)
+                holder.binding.itemVideoDuration.text = "$minutes:0$seconds"
+            else
+                holder.binding.itemVideoDuration.text = "$minutes:$seconds"
+        }
 
         Glide.with(holder.itemView.context)
             .load(videoUri)
@@ -43,12 +65,59 @@ class TimelineAdapter(private val videoList: List<MediaItem>, private val contex
             .skipMemoryCache(true)
             .into(holder.binding.itemVideo)
 
-        holder.binding.itemVideo.setOnClickListener {
-            // Open video player activity or fragment and pass video URL
-            val intent = Intent(context, MainActivity::class.java)
-            intent.putExtra("videoUrl", videoUri.toString())
-            context.startActivity(intent)
+        holder.itemView.setOnClickListener {
+            Log.d("TimelineAdapter", "Item clicked at position $position")
+
+            onItemClickListener?.onItemClick(position)
         }
+        // Update CheckBox visibility and state based on selection mode
+        holder.binding.itemVideoCheckbox.visibility =
+            if (isSelectionMode) View.VISIBLE else View.GONE
+        holder.binding.itemVideoCheckbox.isChecked = selectedItems.contains(position)
+
+        // Handle click events
+        holder.itemView.setOnClickListener {
+            if (isSelectionMode) {
+                if (selectedItems.contains(position)) {
+                    selectedItems.remove(position)
+                } else {
+                    selectedItems.add(position)
+                }
+                notifyItemChanged(position)
+            } else {
+                onItemClickListener?.onItemClick(position)
+            }
+        }
+
+        holder.itemView.setOnLongClickListener {
+            if (isSelectionMode) notifyItemChanged(position) else notifyDataSetChanged()
+            isSelectionMode = true
+            selectedItems.add(position)
+            true
+        }
+//        holder.binding.itemVideo.setOnClickListener {
+//            // Open video player activity or fragment and pass video URL
+//            val intent = Intent(context, MainActivity::class.java)
+//            intent.putExtra("videoUrl", videoUri.toString())
+//            context.startActivity(intent)
+//        }
+//
+    }
+
+    fun setOnItemClickListener(listener: OnItemClickListener) {
+        this.onItemClickListener = listener
+    }
+
+    interface OnItemClickListener {
+        fun onItemClick(position: Int)
+    }
+
+    interface OnItemLongClickListener {
+        fun onItemLongClick(position: Int)
+    }
+
+    fun setOnItemLongClickListener(listener: OnItemLongClickListener) {
+        this.onItemLongClickListener = listener
     }
 
     class VideoDiffCallback : DiffUtil.ItemCallback<MediaItem>() {

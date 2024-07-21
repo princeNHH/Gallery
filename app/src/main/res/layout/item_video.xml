@@ -1,12 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="80dp"
+    android:layout_height="80dp"
+    android:layout_margin="2dp">
+
     <ImageView
-        android:layout_width="80dp"
-        android:layout_height="80dp"
         android:id="@+id/item_video"
-        android:layout_margin="2dp"
-        android:layout_weight="1"
-        android:scaleType="centerCrop"/>
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop" />
+    <CheckBox
+        android:id="@+id/item_video_checkbox"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginStart="4dp"
+        android:button="@drawable/checkbox"
+        android:background="@drawable/select_bg_icon"
+        android:visibility="gone"
+        android:theme="@style/Theme.AppCompat"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="5dp"
+        android:layout_marginBottom="5dp"
+        android:background="@drawable/duration_bg"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingVertical="1dp"
+        android:paddingEnd="3dp">
+
+        <ImageView
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:src="@drawable/play_icon" />
+
+        <TextView
+            android:id="@+id/item_video_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="1dp"
+            android:text="0:00"
+            android:textColor="@color/white"
+            android:textSize="9sp"
+            tools:ignore="SmallSp" />
+    </LinearLayout>
 </RelativeLayout>

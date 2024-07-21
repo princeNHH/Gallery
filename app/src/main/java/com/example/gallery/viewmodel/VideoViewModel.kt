@@ -7,10 +7,12 @@ import android.database.Cursor
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import androidx.annotation.OptIn
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 
 class VideoViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -38,6 +40,7 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
         getApplication<Application>().contentResolver.unregisterContentObserver(contentObserver)
     }
 
+    @OptIn(UnstableApi::class)
     fun loadVideos() {
         val listVideo = mutableListOf<MediaItem>()
         val projection = arrayOf(
@@ -75,6 +78,7 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
                 val mediaItem = MediaItem.Builder()
                     .setMediaId(id.toString())
                     .setUri(contentUri)
+                    .setImageDurationMs(duration)
                     .build()
                 listVideo.add(mediaItem)
             }
