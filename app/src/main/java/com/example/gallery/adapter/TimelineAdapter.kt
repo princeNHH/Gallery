@@ -3,6 +3,7 @@ package com.example.gallery.adapter
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.OptIn
@@ -34,7 +35,7 @@ class TimelineAdapter(private val videoList: List<MediaItem>, private val contex
     override fun onBindViewHolder(holder: TimelineViewHolder, position: Int) {
         val mediaItem = getItem(position)
         val videoUri = mediaItem.playbackProperties?.uri
-
+        Log.d("Hiep", "Bind Timeline fragment")
         Glide.with(holder.itemView.context)
             .load(videoUri)
             .apply(RequestOptions().frame(1000000)) // load frame at 1 second (adjust time as needed)

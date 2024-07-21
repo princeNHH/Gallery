@@ -46,30 +46,32 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         videoViewModel = ViewModelProvider(this)[VideoViewModel::class.java]
-
-        timeLineAdapter = TimelineAdapter(emptyList(), this)
-
         videoViewModel.listVideo.observe(this, Observer { videos ->
             timeLineAdapter.submitList(videos)
         })
 
-        timelineFragment = TimelineFragment(timeLineAdapter)
+        timeLineAdapter = TimelineAdapter(emptyList(), this)
+        timelineFragment = TimelineFragment.newInstance()
+        timelineFragment?.setAdapter(timeLineAdapter)
         albumFragment = AlbumFragment()
 
+        val underLineVideo = binding.videoTabUnderline
+        val underLineAlbum = binding.albumTabUnderline
         binding.videoTab.setOnClickListener {
             switchFragment(timelineFragment!!)
-            binding.videoTabUnderline.visibility = View.VISIBLE
-            binding.albumTabUnderline.visibility = View.GONE
+            underLineVideo.visibility = View.VISIBLE
+            underLineAlbum.visibility = View.GONE
         }
-
+        Log.d("Hiep", "createActivity")
         binding.albumTab.setOnClickListener {
             switchFragment(albumFragment!!)
-            binding.videoTabUnderline.visibility = View.GONE
-            binding.albumTabUnderline.visibility = View.VISIBLE
+            underLineVideo.visibility = View.GONE
+            underLineAlbum.visibility = View.VISIBLE
         }
-
         // Load initial fragment
         switchFragment(timelineFragment!!)
+        underLineVideo.visibility = View.VISIBLE
+        underLineAlbum.visibility = View.GONE
     }
 
     private fun switchFragment(newFragment: Fragment) {
@@ -80,7 +82,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (!newFragment.isAdded) {
-            transaction.add(R.id.fragment_container, newFragment, newFragment::class.java.simpleName)
+            transaction.add(
+                R.id.fragment_container,
+                newFragment,
+                newFragment::class.java.simpleName
+            )
         } else {
             transaction.show(newFragment)
         }
@@ -100,12 +106,15 @@ class MainActivity : AppCompatActivity() {
                 this,
                 Manifest.permission.READ_MEDIA_VIDEO
             ) == PackageManager.PERMISSION_GRANTED -> {
+                videoViewModel.loadVideos()
             }
+
             !ActivityCompat.shouldShowRequestPermissionRationale(
                 this, Manifest.permission.READ_MEDIA_VIDEO
             ) -> {
                 requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_VIDEO)
             }
+
             else -> {
                 showPermissionSettingsDialog()
             }
@@ -118,20 +127,20 @@ class MainActivity : AppCompatActivity() {
             .setView(dialogView)
             .create()
 
+        dialog.window?.attributes?.gravity = Gravity.BOTTOM
+        dialog.setCancelable(false)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.attributes?.verticalMargin = 0.025f
+        dialog.show()
         dialogView.findViewById<TextView>(R.id.button_settings).setOnClickListener {
-            openAppSettings()
             dialog.dismiss()
+            openAppSettings()
         }
 
         dialogView.findViewById<TextView>(R.id.button_exit).setOnClickListener {
             dialog.dismiss()
             finish()
         }
-        dialog.window?.attributes?.gravity = Gravity.BOTTOM
-        dialog.setCancelable(false)
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialog.window?.attributes?.verticalMargin = 0.025f
-        dialog.show()
     }
 
     private fun openAppSettings() {
@@ -143,7 +152,11 @@ class MainActivity : AppCompatActivity() {
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) {}
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            videoViewModel.loadVideos()
+        }
+    }
 }
 
 
