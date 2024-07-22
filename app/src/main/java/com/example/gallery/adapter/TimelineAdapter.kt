@@ -3,6 +3,7 @@ package com.example.gallery.adapter
 import android.annotation.SuppressLint
 import android.content.Context
 import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -23,89 +24,90 @@ class TimelineAdapter(private val videoList: List<MediaItem>, private val contex
     private var onItemClickListener: OnItemClickListener? = null
     private var onItemLongClickListener: OnItemLongClickListener? = null
     private var isSelectionMode = false
-    private var selectedPosition: Int? = null
-    private var selectedItems = mutableSetOf<Int>()
+    private val selectedItems = mutableSetOf<Int>()
+    private val viewHolders = mutableListOf<TimelineViewHolder>()
+    private val retriever = MediaMetadataRetriever()
+    private val videoDurationCache = mutableMapOf<Uri, Pair<Long, Long>>() // Cache video duration
 
-    class TimelineViewHolder(val binding: ItemVideoBinding) : RecyclerView.ViewHolder(binding.root)
+    inner class TimelineViewHolder(val binding: ItemVideoBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(mediaItem: MediaItem, position: Int) {
+            val videoUri = mediaItem.localConfiguration?.uri
 
-    init {
-        submitList(videoList)
+            // Chỉ cập nhật lại giao diện nếu videoUri thay đổi
+            if (binding.root.tag != videoUri) {
+                binding.root.tag = videoUri
+
+                val durationPair = videoDurationCache[videoUri] ?: run {
+                    retriever.setDataSource(binding.root.context, videoUri)
+                    val videoDuration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
+                    val minutes = videoDuration?.let { it / 1000 / 60 } ?: 0
+                    val seconds = videoDuration?.let { it / 1000 % 60 } ?: 0
+                    val pair = Pair(minutes, seconds)
+                    videoDurationCache[videoUri!!] = pair // Cache the duration
+                    pair
+                }
+
+                binding.itemVideoDuration.text = String.format("%02d:%02d", durationPair.first, durationPair.second)
+
+                Glide.with(binding.root.context)
+                    .load(videoUri)
+                    .apply(RequestOptions().frame(1000000)) // load frame tại 1 giây (điều chỉnh thời gian nếu cần)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL) // Dùng cache cho Glide
+                    .into(binding.itemVideo)
+            }
+
+            // Cập nhật trạng thái checkbox và visibility
+            binding.itemVideoCheckbox.visibility = if (isSelectionMode) View.VISIBLE else View.GONE
+            binding.itemVideoCheckbox.isChecked = selectedItems.contains(position)
+
+            binding.root.setOnClickListener {
+                if (isSelectionMode) {
+                    if (selectedItems.contains(position)) {
+                        selectedItems.remove(position)
+                    } else {
+                        selectedItems.add(position)
+                    }
+                    binding.itemVideoCheckbox.isChecked = selectedItems.contains(position) // Cập nhật checkbox trực tiếp
+                } else {
+                    onItemClickListener?.onItemClick(position)
+                }
+            }
+
+            binding.root.setOnLongClickListener {
+                if (!isSelectionMode) {
+                    isSelectionMode = true
+                    toggleCheckboxVisibility(true) // Hiển thị tất cả checkbox
+                }
+                selectedItems.add(position)
+                binding.itemVideoCheckbox.isChecked = true
+                true
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TimelineViewHolder {
         val binding = ItemVideoBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return TimelineViewHolder(binding)
+        return TimelineViewHolder(binding).also { viewHolder ->
+            viewHolders.add(viewHolder) // Thêm vào danh sách view holders
+        }
     }
 
-    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: TimelineViewHolder, position: Int) {
-        val mediaItem = getItem(position)
-        val videoUri = mediaItem.localConfiguration?.uri
-        val retriever = MediaMetadataRetriever()
-        retriever.setDataSource(context, videoUri)
-        val videoDuration =
-            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()
-        val minutes = videoDuration?.div(1000)?.div(60)
-        val seconds = videoDuration?.div(1000)?.rem(60)
-        if (minutes != null && seconds != null) {
-            if (minutes < 10 && seconds < 10)
-                holder.binding.itemVideoDuration.text = "0$minutes:0$seconds"
-            else if (minutes < 10)
-                holder.binding.itemVideoDuration.text = "0$minutes:$seconds"
-            else if (seconds < 10)
-                holder.binding.itemVideoDuration.text = "$minutes:0$seconds"
-            else
-                holder.binding.itemVideoDuration.text = "$minutes:$seconds"
+        holder.bind(getItem(position), position)
+    }
+
+    private fun toggleCheckboxVisibility(visible: Boolean) {
+        viewHolders.forEach { viewHolder ->
+            viewHolder.binding.itemVideoCheckbox.visibility = if (visible) View.VISIBLE else View.GONE
         }
-
-        Glide.with(holder.itemView.context)
-            .load(videoUri)
-            .apply(RequestOptions().frame(1000000)) // load frame at 1 second (adjust time as needed)
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .skipMemoryCache(true)
-            .into(holder.binding.itemVideo)
-
-        holder.itemView.setOnClickListener {
-            Log.d("TimelineAdapter", "Item clicked at position $position")
-
-            onItemClickListener?.onItemClick(position)
-        }
-        // Update CheckBox visibility and state based on selection mode
-        holder.binding.itemVideoCheckbox.visibility =
-            if (isSelectionMode) View.VISIBLE else View.GONE
-        holder.binding.itemVideoCheckbox.isChecked = selectedItems.contains(position)
-
-        // Handle click events
-        holder.itemView.setOnClickListener {
-            if (isSelectionMode) {
-                if (selectedItems.contains(position)) {
-                    selectedItems.remove(position)
-                } else {
-                    selectedItems.add(position)
-                }
-                notifyItemChanged(position)
-            } else {
-                onItemClickListener?.onItemClick(position)
-            }
-        }
-
-        holder.itemView.setOnLongClickListener {
-            if (isSelectionMode) notifyItemChanged(position) else notifyDataSetChanged()
-            isSelectionMode = true
-            selectedItems.add(position)
-            true
-        }
-//        holder.binding.itemVideo.setOnClickListener {
-//            // Open video player activity or fragment and pass video URL
-//            val intent = Intent(context, MainActivity::class.java)
-//            intent.putExtra("videoUrl", videoUri.toString())
-//            context.startActivity(intent)
-//        }
-//
     }
 
     fun setOnItemClickListener(listener: OnItemClickListener) {
         this.onItemClickListener = listener
+    }
+
+    fun setOnItemLongClickListener(listener: OnItemLongClickListener) {
+        this.onItemLongClickListener = listener
     }
 
     interface OnItemClickListener {
@@ -116,13 +118,9 @@ class TimelineAdapter(private val videoList: List<MediaItem>, private val contex
         fun onItemLongClick(position: Int)
     }
 
-    fun setOnItemLongClickListener(listener: OnItemLongClickListener) {
-        this.onItemLongClickListener = listener
-    }
-
     class VideoDiffCallback : DiffUtil.ItemCallback<MediaItem>() {
         override fun areItemsTheSame(oldItem: MediaItem, newItem: MediaItem): Boolean {
-            return oldItem.mediaId == newItem.mediaId // Assuming MediaItem has mediaId or a similar unique identifier
+            return oldItem.mediaId == newItem.mediaId
         }
 
         override fun areContentsTheSame(oldItem: MediaItem, newItem: MediaItem): Boolean {

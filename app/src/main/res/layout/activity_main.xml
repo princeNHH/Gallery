@@ -30,6 +30,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingTop="@dimen/tool_bar_height"
+        android:paddingBottom="@dimen/bottom_bar_height"
         android:paddingHorizontal="10dp"/>
 
     <LinearLayout
@@ -39,7 +40,8 @@
         android:layout_alignParentBottom="true"
         android:gravity="center"
         android:orientation="horizontal"
-        android:layout_marginBottom="10dp">
+        android:layout_marginBottom="10dp"
+        android:background="@color/white">
 
         <LinearLayout
             android:id="@+id/video_tab"
