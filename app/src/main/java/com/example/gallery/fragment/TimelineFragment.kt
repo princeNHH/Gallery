@@ -5,14 +5,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
-import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
-import com.example.gallery.R
+import com.example.gallery.MainActivity
 import com.example.gallery.adapter.TimelineAdapter
 import com.example.gallery.databinding.TimelineFragmentBinding
-
 
 class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener, TimelineAdapter.OnItemLongClickListener {
 
@@ -20,27 +18,37 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener, Timeli
     private val binding get() = _binding!!
     private var adapter: TimelineAdapter? = null
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = TimelineFragmentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        adapter = TimelineAdapter(requireContext())
+        val gridLayoutManager = GridLayoutManager(requireContext(), 4)
+        gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                return if (adapter!!.getItemViewType(position) == TimelineAdapter.VIEW_TYPE_HEADER) 4 else 1
+            }
+        }
+
+        binding.rcvTimelineFragment.layoutManager = gridLayoutManager
+        binding.rcvTimelineFragment.adapter = adapter
+        // Listen to changes from ViewModel
+        (activity as MainActivity).videoViewModel.timelineItems.observe(viewLifecycleOwner, Observer { items ->
+            adapter!!.submitList(items)
+        })
+    }
+
     companion object {
         fun newInstance(): TimelineFragment {
             return TimelineFragment()
         }
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        _binding = TimelineFragmentBinding.inflate(inflater, container, false)
-        Log.d("Hiep", "onCreateViewTimeLineFragment")
-
-
-        binding.rcvTimelineFragment.layoutManager = GridLayoutManager(requireContext(), 4)
-
-        if (adapter != null) {
-            binding.rcvTimelineFragment.adapter = adapter
-            adapter!!.setOnItemClickListener(this)
-        }
-
-        return binding.root
     }
 
     override fun onResume() {

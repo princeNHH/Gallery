@@ -13,11 +13,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import com.example.gallery.TimelineItem
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class VideoViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val _listVideo = MutableLiveData<List<MediaItem>>()
-    val listVideo: LiveData<List<MediaItem>> get() = _listVideo
+    private val _timelineItems = MutableLiveData<List<TimelineItem>>()
+    val timelineItems: LiveData<List<TimelineItem>> get() = _timelineItems
 
     private val contentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(self: Boolean) {
@@ -47,7 +51,8 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
             MediaStore.Video.Media._ID,
             MediaStore.Video.Media.DISPLAY_NAME,
             MediaStore.Video.Media.DURATION,
-            MediaStore.Video.Media.SIZE
+            MediaStore.Video.Media.SIZE,
+            MediaStore.Video.Media.DATE_ADDED
         )
 
         val cursor: Cursor? = getApplication<Application>().contentResolver.query(
@@ -63,12 +68,14 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
             val nameColumn = it.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
             val durationColumn = it.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
             val sizeColumn = it.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
+            val dateAddedColumn = it.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
 
             while (it.moveToNext()) {
                 val id = it.getLong(idColumn)
                 val name = it.getString(nameColumn)
                 val duration = it.getLong(durationColumn)
                 val size = it.getLong(sizeColumn)
+                val date = it.getLong(dateAddedColumn)*1000L
 
                 val contentUri = ContentUris.withAppendedId(
                     MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
@@ -79,10 +86,27 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
                     .setMediaId(id.toString())
                     .setUri(contentUri)
                     .setImageDurationMs(duration)
+                    .setTag(date)
                     .build()
                 listVideo.add(mediaItem)
             }
         }
-        _listVideo.postValue(listVideo)
+        _timelineItems.postValue(groupVideosByDate(listVideo))
+    }
+    private fun groupVideosByDate(listVideo: List<MediaItem>): List<TimelineItem> {
+        val timelineItems = mutableListOf<TimelineItem>()
+        val groupedVideos = listVideo.groupBy { mediaItem ->
+            val date = Date(mediaItem.localConfiguration?.tag as Long)
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date)
+        }
+
+        groupedVideos.forEach { (date, videos) ->
+            timelineItems.add(TimelineItem.Header(date))
+            videos.forEach { video ->
+                timelineItems.add(TimelineItem.VideoItem(video))
+            }
+        }
+
+        return timelineItems
     }
 }

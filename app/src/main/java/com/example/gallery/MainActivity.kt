@@ -33,7 +33,7 @@ import com.example.gallery.fragment.ViewPagerFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private lateinit var videoViewModel: VideoViewModel
+    lateinit var videoViewModel: VideoViewModel
     private lateinit var timeLineAdapter: TimelineAdapter
     private var timelineFragment: TimelineFragment? = null
     private var albumFragment: AlbumFragment? = null
@@ -45,13 +45,13 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        videoViewModel = ViewModelProvider(this)[VideoViewModel::class.java]
-        videoViewModel.listVideo.observe(this, Observer { videos ->
-            timeLineAdapter.submitList(videos)
-        })
 
-        timeLineAdapter = TimelineAdapter(emptyList(), this)
+        videoViewModel = ViewModelProvider(this)[VideoViewModel::class.java]
+        videoViewModel.timelineItems.observe(this, Observer { timelineItems ->
+            timeLineAdapter.submitList(timelineItems)
+        })
         timelineFragment = TimelineFragment.newInstance()
+        timeLineAdapter = TimelineAdapter(this)
         timelineFragment?.setAdapter(timeLineAdapter)
         albumFragment = AlbumFragment()
 
@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
             underLineVideo.visibility = View.VISIBLE
             underLineAlbum.visibility = View.GONE
         }
-        Log.d("Hiep", "createActivity")
+
         binding.albumTab.setOnClickListener {
             switchFragment(albumFragment!!)
             underLineVideo.visibility = View.GONE

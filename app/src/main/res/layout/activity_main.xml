@@ -30,7 +30,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingTop="@dimen/tool_bar_height"
-        android:paddingBottom="@dimen/bottom_bar_height"
+        android:paddingBottom="74dp"
         android:paddingHorizontal="10dp"/>
 
     <LinearLayout
