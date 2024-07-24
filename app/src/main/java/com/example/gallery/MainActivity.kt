@@ -15,12 +15,14 @@ import android.widget.TextView
 import android.widget.VideoView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.Log
@@ -33,11 +35,11 @@ import com.example.gallery.fragment.ViewPagerFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    lateinit var videoViewModel: VideoViewModel
-    private lateinit var timeLineAdapter: TimelineAdapter
-    private var timelineFragment: TimelineFragment? = null
-    private var albumFragment: AlbumFragment? = null
+    private lateinit var timelineFragment: TimelineFragment
+    private lateinit var albumFragment: AlbumFragment
     private var currentFragment: Fragment? = null
+
+    val viewModel: VideoViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,76 +47,61 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
-        videoViewModel = ViewModelProvider(this)[VideoViewModel::class.java]
-        videoViewModel.timelineItems.observe(this, Observer { timelineItems ->
-            timeLineAdapter.submitList(timelineItems)
-        })
         timelineFragment = TimelineFragment.newInstance()
-        timeLineAdapter = TimelineAdapter(this)
-        timelineFragment?.setAdapter(timeLineAdapter)
         albumFragment = AlbumFragment()
 
-        val underLineVideo = binding.videoTabUnderline
-        val underLineAlbum = binding.albumTabUnderline
         binding.videoTab.setOnClickListener {
-            switchFragment(timelineFragment!!)
-            underLineVideo.visibility = View.VISIBLE
-            underLineAlbum.visibility = View.GONE
+            switchFragment(timelineFragment)
+            setTabUnderlineVisibility(binding.videoTabUnderline, binding.albumTabUnderline)
         }
 
         binding.albumTab.setOnClickListener {
-            switchFragment(albumFragment!!)
-            underLineVideo.visibility = View.GONE
-            underLineAlbum.visibility = View.VISIBLE
+            switchFragment(albumFragment)
+            setTabUnderlineVisibility(binding.albumTabUnderline, binding.videoTabUnderline)
         }
+
         // Load initial fragment
-        switchFragment(timelineFragment!!)
-        underLineVideo.visibility = View.VISIBLE
-        underLineAlbum.visibility = View.GONE
-    }
+        switchFragment(timelineFragment)
+        setTabUnderlineVisibility(binding.videoTabUnderline, binding.albumTabUnderline)
 
-    private fun switchFragment(newFragment: Fragment) {
-        val transaction = supportFragmentManager.beginTransaction()
-
-        if (currentFragment != null) {
-            transaction.hide(currentFragment!!)
-        }
-
-        if (!newFragment.isAdded) {
-            transaction.add(
-                R.id.fragment_container,
-                newFragment,
-                newFragment::class.java.simpleName
-            )
-        } else {
-            transaction.show(newFragment)
-        }
-
-        transaction.commit()
-        currentFragment = newFragment
+        checkAndRequestPermissions()
     }
 
     override fun onResume() {
         super.onResume()
-        checkPermission()
-    }
-
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            videoViewModel.loadVideos()
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_MEDIA_VIDEO
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            viewModel.loadVideos()
         }
     }
 
-    private fun checkPermission() {
+    private fun switchFragment(newFragment: Fragment) {
+        supportFragmentManager.commit {
+            if (currentFragment != null) hide(currentFragment!!)
+            if (!newFragment.isAdded) {
+                add(R.id.fragment_container, newFragment, newFragment::class.java.simpleName)
+            } else {
+                show(newFragment)
+            }
+        }
+        currentFragment = newFragment
+    }
+
+    private fun setTabUnderlineVisibility(visibleTab: View, invisibleTab: View) {
+        visibleTab.visibility = View.VISIBLE
+        invisibleTab.visibility = View.GONE
+    }
+
+    private fun checkAndRequestPermissions() {
         when {
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.READ_MEDIA_VIDEO
             ) == PackageManager.PERMISSION_GRANTED -> {
-                videoViewModel.loadVideos()
+                viewModel.loadVideos()
             }
 
             !ActivityCompat.shouldShowRequestPermissionRationale(
@@ -129,26 +116,34 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            viewModel.loadVideos()
+        }
+    }
+
     private fun showPermissionSettingsDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_permission, null)
-        val dialog = AlertDialog.Builder(this)
+        AlertDialog.Builder(this)
             .setView(dialogView)
+            .setCancelable(false)
             .create()
-
-        dialog.window?.attributes?.gravity = Gravity.BOTTOM
-        dialog.setCancelable(false)
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialog.window?.attributes?.verticalMargin = 0.025f
-        dialog.show()
-        dialogView.findViewById<TextView>(R.id.button_settings).setOnClickListener {
-            dialog.dismiss()
-            openAppSettings()
-        }
-
-        dialogView.findViewById<TextView>(R.id.button_exit).setOnClickListener {
-            dialog.dismiss()
-            finish()
-        }
+            .apply {
+                window?.setGravity(Gravity.BOTTOM)
+                window?.attributes?.verticalMargin = 0.025f
+                window?.setBackgroundDrawableResource(android.R.color.transparent)
+                show()
+                dialogView.findViewById<TextView>(R.id.button_settings).setOnClickListener {
+                    dismiss()
+                    openAppSettings()
+                }
+                dialogView.findViewById<TextView>(R.id.button_exit).setOnClickListener {
+                    dismiss()
+                    finish()
+                }
+            }
     }
 
     private fun openAppSettings() {
@@ -156,6 +151,16 @@ class MainActivity : AppCompatActivity() {
             data = Uri.fromParts("package", packageName, null)
         }
         startActivity(intent)
+    }
+
+    fun updateSelectedCount(count: Int) {
+        if(count == 0){
+            binding.selectText.visibility = View.VISIBLE
+            binding.selectText.text = "Select items"
+        }else{
+            binding.selectText.visibility = View.VISIBLE
+            binding.selectText.text = "$count selected"
+        }
     }
 }
 

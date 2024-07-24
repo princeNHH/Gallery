@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
+import com.example.gallery.MainActivity
 import com.example.gallery.TimelineItem
 import com.example.gallery.databinding.ItemHeaderBinding
 import com.example.gallery.databinding.ItemVideoBinding
@@ -22,59 +23,52 @@ class TimelineAdapter(private val context: Context) :
 
     private var onItemClickListener: OnItemClickListener? = null
     private var onItemLongClickListener: OnItemLongClickListener? = null
+    private var onSelectionChangedListener: OnSelectionChangedListener? = null
     private var isSelectionMode = false
     private val selectedItems = mutableSetOf<Int>()
     private val viewHolders = mutableListOf<RecyclerView.ViewHolder>()
     private val retriever = MediaMetadataRetriever()
-    private val videoDurationCache = mutableMapOf<Uri, Pair<Long, Long>>() // Cache video duration
+    private val videoDurationCache = mutableMapOf<Uri, Pair<Long, Long>>()
 
     companion object {
         private const val VIEW_TYPE_VIDEO = 0
         const val VIEW_TYPE_HEADER = 1
-
     }
 
     override fun getItemViewType(position: Int): Int {
         return when (getItem(position)) {
             is TimelineItem.Header -> VIEW_TYPE_HEADER
             is TimelineItem.VideoItem -> VIEW_TYPE_VIDEO
+            else -> throw IllegalArgumentException("Invalid view type")
         }
     }
 
     inner class VideoViewHolder(val binding: ItemVideoBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(mediaItem: MediaItem) {
-            val videoUri = mediaItem.localConfiguration?.uri
+            val videoUri = mediaItem.localConfiguration?.uri ?: return
 
-            // Chỉ cập nhật lại giao diện nếu videoUri thay đổi
             if (binding.root.tag != videoUri) {
                 binding.root.tag = videoUri
-
                 val durationPair = videoDurationCache[videoUri] ?: run {
-                    retriever.setDataSource(binding.root.context, videoUri)
-                    val videoDuration =
-                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                            ?.toLongOrNull()
-                    val minutes = videoDuration?.let { it / 1000 / 60 } ?: 0
-                    val seconds = videoDuration?.let { it / 1000 % 60 } ?: 0
-                    val pair = Pair(minutes, seconds)
-                    videoDurationCache[videoUri!!] = pair // Cache the duration
-                    pair
+                    retriever.setDataSource(context, videoUri)
+                    val videoDuration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
+                    val minutes = videoDuration?.div(1000)?.div(60) ?: 0
+                    val seconds = videoDuration?.div(1000)?.rem(60) ?: 0
+                    Pair(minutes, seconds).also { videoDurationCache[videoUri] = it }
                 }
 
-                binding.itemVideoDuration.text =
-                    String.format("%02d:%02d", durationPair.first, durationPair.second)
+                binding.itemVideoDuration.text = String.format("%02d:%02d", durationPair.first, durationPair.second)
 
-                Glide.with(binding.root.context).load(videoUri)
-                    .apply(RequestOptions().frame(1000000)) // load frame tại 1 giây (điều chỉnh thời gian nếu cần)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL) // Dùng cache cho Glide
+                Glide.with(context)
+                    .load(videoUri)
+                    .apply(RequestOptions().frame(1000000))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(binding.itemVideo)
             }
 
-            // Cập nhật trạng thái checkbox và visibility
             binding.itemVideoCheckbox.visibility = if (isSelectionMode) View.VISIBLE else View.GONE
             binding.itemVideoCheckbox.isChecked = selectedItems.contains(bindingAdapterPosition)
-
             binding.root.setOnClickListener {
                 if (isSelectionMode) {
                     if (selectedItems.contains(bindingAdapterPosition)) {
@@ -87,6 +81,7 @@ class TimelineAdapter(private val context: Context) :
                 } else {
                     onItemClickListener?.onItemClick(bindingAdapterPosition)
                 }
+                updateSelectionCount()
             }
 
             binding.root.setOnLongClickListener {
@@ -96,7 +91,20 @@ class TimelineAdapter(private val context: Context) :
                 }
                 selectedItems.add(bindingAdapterPosition)
                 binding.itemVideoCheckbox.isChecked = true
+                updateSelectionCount()
                 true
+            }
+        }
+    }
+
+    private fun updateSelectionCount() {
+        onSelectionChangedListener?.onSelectionChanged(selectedItems.size)
+    }
+
+    private fun toggleCheckboxVisibility(visible: Boolean) {
+        viewHolders.forEach { viewHolder ->
+            if (viewHolder is VideoViewHolder) {
+                viewHolder.binding.itemVideoCheckbox.visibility = if (visible) View.VISIBLE else View.GONE
             }
         }
     }
@@ -111,37 +119,21 @@ class TimelineAdapter(private val context: Context) :
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             VIEW_TYPE_HEADER -> {
-                val binding =
-                    ItemHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                val binding = ItemHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false)
                 HeaderViewHolder(binding)
             }
-
             VIEW_TYPE_VIDEO -> {
-                val binding =
-                    ItemVideoBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-                return VideoViewHolder(binding).also { viewHolder ->
-                    viewHolders.add(viewHolder) // Thêm vào danh sách view holders
-                }
+                val binding = ItemVideoBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                VideoViewHolder(binding).also { viewHolders.add(it) }
             }
-
             else -> throw IllegalArgumentException("Invalid view type")
         }
-
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
             is HeaderViewHolder -> holder.bind((getItem(position) as TimelineItem.Header).title)
             is VideoViewHolder -> holder.bind((getItem(position) as TimelineItem.VideoItem).mediaItem)
-        }
-    }
-
-    private fun toggleCheckboxVisibility(visible: Boolean) {
-        viewHolders.forEach { viewHolder ->
-            if (viewHolder is VideoViewHolder) {
-                viewHolder.binding.itemVideoCheckbox.visibility =
-                    if (visible) View.VISIBLE else View.GONE
-            }
         }
     }
 
@@ -161,7 +153,15 @@ class TimelineAdapter(private val context: Context) :
         fun onItemLongClick(position: Int)
     }
 
-    class TimelineDiffCallBack() : DiffUtil.ItemCallback<TimelineItem>() {
+    fun setOnSelectionChangedListener(listener: OnSelectionChangedListener) {
+        this.onSelectionChangedListener = listener
+    }
+
+    interface OnSelectionChangedListener {
+        fun onSelectionChanged(selectedCount: Int)
+    }
+
+    class TimelineDiffCallBack : DiffUtil.ItemCallback<TimelineItem>() {
         override fun areItemsTheSame(oldItem: TimelineItem, newItem: TimelineItem): Boolean {
             return oldItem == newItem
         }
@@ -171,3 +171,5 @@ class TimelineAdapter(private val context: Context) :
         }
     }
 }
+
+

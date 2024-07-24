@@ -24,15 +24,15 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
     val timelineItems: LiveData<List<TimelineItem>> get() = _timelineItems
 
     private val contentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
-        override fun onChange(self: Boolean) {
-            super.onChange(self)
-            loadVideos() // Reload videos when media store changes
+        override fun onChange(selfChange: Boolean) {
+            super.onChange(selfChange)
+            loadVideos()
         }
     }
 
     init {
         loadVideos()
-        getApplication<Application>().contentResolver.registerContentObserver(
+        application.contentResolver.registerContentObserver(
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
             true,
             contentObserver
@@ -55,27 +55,25 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
             MediaStore.Video.Media.DATE_ADDED
         )
 
-        val cursor: Cursor? = getApplication<Application>().contentResolver.query(
+        getApplication<Application>().contentResolver.query(
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
             projection,
             null,
             null,
             null
-        )
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
+            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+            val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
+            val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
 
-        cursor?.use {
-            val idColumn = it.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            val nameColumn = it.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-            val durationColumn = it.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
-            val sizeColumn = it.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
-            val dateAddedColumn = it.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
-
-            while (it.moveToNext()) {
-                val id = it.getLong(idColumn)
-                val name = it.getString(nameColumn)
-                val duration = it.getLong(durationColumn)
-                val size = it.getLong(sizeColumn)
-                val date = it.getLong(dateAddedColumn)*1000L
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(idColumn)
+                val name = cursor.getString(nameColumn)
+                val duration = cursor.getLong(durationColumn)
+                val size = cursor.getLong(sizeColumn)
+                val date = cursor.getLong(dateAddedColumn) * 1000L
 
                 val contentUri = ContentUris.withAppendedId(
                     MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
@@ -93,6 +91,7 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
         }
         _timelineItems.postValue(groupVideosByDate(listVideo))
     }
+
     private fun groupVideosByDate(listVideo: List<MediaItem>): List<TimelineItem> {
         val timelineItems = mutableListOf<TimelineItem>()
         val groupedVideos = listVideo.groupBy { mediaItem ->
