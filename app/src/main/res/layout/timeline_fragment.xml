@@ -4,9 +4,28 @@
     android:id="@+id/timeline_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+    <FrameLayout
+        android:id="@+id/tool_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/tool_bar_height">
 
+        <TextView
+            android:id="@+id/select_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="bottom|start"
+            android:paddingStart="28dp"
+            android:paddingBottom="16dp"
+            android:text="Select"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:textSize="24sp"
+            android:visibility="gone"
+            tools:ignore="RtlSymmetry" />
+    </FrameLayout>
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rcv_timeline_fragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:paddingTop="@dimen/tool_bar_height"/>
 </RelativeLayout>

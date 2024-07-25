@@ -10,7 +10,7 @@
         android:layout_height="25dp"
         android:button="@drawable/divider_checkbox"
         android:background="@drawable/ripple_button"
-        android:visibility="visible"
+        android:visibility="gone"
         android:gravity="start|center"
         android:theme="@style/Theme.AppCompat"/>
     <TextView

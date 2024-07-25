@@ -1,5 +1,6 @@
 package com.example.gallery
 
+import android.widget.CheckBox
 import androidx.media3.common.MediaItem
 
 sealed class TimelineItem {

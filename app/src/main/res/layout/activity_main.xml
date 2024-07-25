@@ -7,31 +7,11 @@
     android:background="#ffffff"
     tools:context=".MainActivity">
 
-    <FrameLayout
-        android:id="@+id/tool_bar"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/tool_bar_height">
-
-        <TextView
-            android:id="@+id/select_text"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="bottom|start"
-            android:paddingStart="28dp"
-            android:paddingBottom="16dp"
-            android:text="Select"
-            android:textStyle="bold"
-            android:textColor="@color/black"
-            android:textSize="24sp"
-            android:visibility="gone"
-            tools:ignore="RtlSymmetry" />
-    </FrameLayout>
 
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="@dimen/tool_bar_height"
         android:paddingBottom="74dp"
         android:paddingHorizontal="10dp"/>
 

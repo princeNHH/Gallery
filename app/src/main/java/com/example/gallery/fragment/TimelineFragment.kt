@@ -21,9 +21,6 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
     private var _binding: TimelineFragmentBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: TimelineAdapter
-    private val viewModel: VideoViewModel by viewModels {
-        ViewModelProvider.AndroidViewModelFactory(requireActivity().application)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -63,6 +60,17 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
         _binding = null
     }
 
+    fun updateSelectedCount(count: Int) {
+        if(count == 0){
+            binding.selectText.visibility = View.VISIBLE
+            binding.selectText.text = "Select items"
+        }else{
+            binding.selectText.visibility = View.VISIBLE
+            binding.selectText.text = "$count selected"
+        }
+
+    }
+
     override fun onItemClick(position: Int) {
         // Handle item click
     }
@@ -72,7 +80,7 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
     }
 
     override fun onSelectionChanged(selectedCount: Int) {
-        (requireActivity() as? MainActivity)?.updateSelectedCount(selectedCount)
+        updateSelectedCount(selectedCount)
     }
 
     companion object {

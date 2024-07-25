@@ -153,15 +153,7 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    fun updateSelectedCount(count: Int) {
-        if(count == 0){
-            binding.selectText.visibility = View.VISIBLE
-            binding.selectText.text = "Select items"
-        }else{
-            binding.selectText.visibility = View.VISIBLE
-            binding.selectText.text = "$count selected"
-        }
-    }
+
 }
 
 
