@@ -55,19 +55,19 @@ class TimelineAdapter(private val context: Context) :
                 binding.root.tag = videoUri
                 val durationPair = videoDurationCache[videoUri] ?: run {
                     retriever.setDataSource(context, videoUri)
-                    val videoDuration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
+                    val videoDuration =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                            ?.toLongOrNull()
                     val minutes = videoDuration?.div(1000)?.div(60) ?: 0
                     val seconds = videoDuration?.div(1000)?.rem(60) ?: 0
                     Pair(minutes, seconds).also { videoDurationCache[videoUri] = it }
                 }
 
-                binding.itemVideoDuration.text = String.format("%02d:%02d", durationPair.first, durationPair.second)
+                binding.itemVideoDuration.text =
+                    String.format("%02d:%02d", durationPair.first, durationPair.second)
 
-                Glide.with(context)
-                    .load(videoUri)
-                    .apply(RequestOptions().frame(1000000))
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .into(binding.itemVideo)
+                Glide.with(context).load(videoUri).apply(RequestOptions().frame(1000000))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL).into(binding.itemVideo)
             }
 
             binding.itemVideoCheckbox.visibility = if (isSelectionMode) View.VISIBLE else View.GONE
@@ -80,7 +80,8 @@ class TimelineAdapter(private val context: Context) :
                     } else {
                         selectedItems.add(bindingAdapterPosition)
                     }
-                    binding.itemVideoCheckbox.isChecked = selectedItems.contains(bindingAdapterPosition)
+                    binding.itemVideoCheckbox.isChecked =
+                        selectedItems.contains(bindingAdapterPosition)
                     updateSelectionCount()
                     updateHeaderCheckboxOnItemSelection(bindingAdapterPosition)
                 } else {
@@ -109,15 +110,16 @@ class TimelineAdapter(private val context: Context) :
             binding.itemHeaderCheckbox.isChecked = areAllItemsSelected()
             setCheckBoxHeader(isSelectionMode)
 
-            binding.itemHeaderCheckbox.setOnCheckedChangeListener { _, isChecked ->
+            binding.itemHeaderCheckbox.setOnClickListener {
                 if (isSelectionMode) {
+                    val isChecked = binding.itemHeaderCheckbox.isChecked
                     toggleSelectionForAllItems(isChecked, bindingAdapterPosition)
                     updateSelectionCount()
                 }
             }
         }
 
-        fun areAllItemsSelected(): Boolean {
+        private fun areAllItemsSelected(): Boolean {
             val headerPosition = bindingAdapterPosition
             var position = headerPosition + 1
             while (position < itemCount && getItemViewType(position) == VIEW_TYPE_VIDEO) {
@@ -167,7 +169,8 @@ class TimelineAdapter(private val context: Context) :
     private fun toggleCheckboxVisibility(visible: Boolean) {
         viewHolders.forEach { viewHolder ->
             if (viewHolder is VideoViewHolder) {
-                viewHolder.binding.itemVideoCheckbox.visibility = if (visible) View.VISIBLE else View.GONE
+                viewHolder.binding.itemVideoCheckbox.visibility =
+                    if (visible) View.VISIBLE else View.GONE
             }
             if (viewHolder is HeaderViewHolder) {
                 viewHolder.setCheckBoxHeader(visible)
@@ -188,13 +191,17 @@ class TimelineAdapter(private val context: Context) :
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             VIEW_TYPE_HEADER -> {
-                val binding = ItemHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                val binding =
+                    ItemHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false)
                 HeaderViewHolder(binding).also { viewHolders.add(it) }
             }
+
             VIEW_TYPE_VIDEO -> {
-                val binding = ItemVideoBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                val binding =
+                    ItemVideoBinding.inflate(LayoutInflater.from(parent.context), parent, false)
                 VideoViewHolder(binding).also { viewHolders.add(it) }
             }
+
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
