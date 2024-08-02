@@ -81,6 +81,10 @@ class TimelineAdapter(private val context: Context) :
         }
     }
 
+    fun updateSelectionCount() {
+        onSelectionChangedListener?.onSelectionChanged(selectedItems.size)
+    }
+
     fun toggleSelectionForAllItems(select: Boolean, headerPosition: Int) {
         var position = headerPosition + 1
         while (position < itemCount && getItemViewType(position) == VIEW_TYPE_VIDEO) {
@@ -101,10 +105,6 @@ class TimelineAdapter(private val context: Context) :
                 viewHolder.updateHeaderCheckbox()
             }
         }
-    }
-
-    fun updateSelectionCount() {
-        onSelectionChangedListener?.onSelectionChanged(selectedItems.size)
     }
 
     fun exitSelectionMode() {
