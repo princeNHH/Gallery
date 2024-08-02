@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -21,7 +22,12 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
     private var _binding: TimelineFragmentBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: TimelineAdapter
-
+    private val callback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            adapter.exitSelectionMode()
+            binding.selectText.visibility = View.GONE
+        }
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -39,10 +45,10 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
             setOnSelectionChangedListener(this@TimelineFragment)
         }
 
-        val gridLayoutManager = GridLayoutManager(requireContext(), 4).apply {
+        val gridLayoutManager = GridLayoutManager(requireContext(), 3).apply {
             spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
                 override fun getSpanSize(position: Int): Int {
-                    return if (adapter.getItemViewType(position) == TimelineAdapter.VIEW_TYPE_HEADER) 4 else 1
+                    return if (adapter.getItemViewType(position) == TimelineAdapter.VIEW_TYPE_HEADER) 3 else 1
                 }
             }
         }
@@ -53,6 +59,8 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
         (activity as MainActivity).viewModel.timelineItems.observe(viewLifecycleOwner) { items ->
             adapter.submitList(items)
         }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
     }
 
     override fun onDestroyView() {
