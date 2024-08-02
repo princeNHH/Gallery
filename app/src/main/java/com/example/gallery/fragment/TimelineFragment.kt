@@ -40,9 +40,9 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
         super.onViewCreated(view, savedInstanceState)
 
         adapter = TimelineAdapter(requireContext()).apply {
-            setOnItemClickListener(this@TimelineFragment)
-            setOnItemLongClickListener(this@TimelineFragment)
-            setOnSelectionChangedListener(this@TimelineFragment)
+            registerOnItemClickListener(this@TimelineFragment)
+            registerOnItemLongClickListener(this@TimelineFragment)
+            registerOnSelectionChangedListener(this@TimelineFragment)
         }
 
         val gridLayoutManager = GridLayoutManager(requireContext(), 3).apply {
