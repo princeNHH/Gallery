@@ -61,7 +61,13 @@ class TimelineAdapter(private val context: Context) :
             VIEW_TYPE_VIDEO -> {
                 val binding =
                     ItemVideoBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-                VideoViewHolder(context, binding, retriever, videoDurationCache, this).also { viewHolders.add(it) }
+                VideoViewHolder(
+                    context,
+                    binding,
+                    retriever,
+                    videoDurationCache,
+                    this
+                ).also { viewHolders.add(it) }
             }
 
             else -> throw IllegalArgumentException("Invalid view type")
@@ -75,12 +81,15 @@ class TimelineAdapter(private val context: Context) :
         }
     }
 
-    fun updateHeaderCheckboxOnItemSelection(videoPosition: Int) {
+    override fun onCurrentListChanged(previousList: List<TimelineItem>, currentList: List<TimelineItem>) {
+        super.onCurrentListChanged(previousList, currentList)
+        updateHeaderCheckboxOnItemSelection()
+    }
+
+    fun updateHeaderCheckboxOnItemSelection() {
         viewHolders.forEach { viewHolder ->
             if (viewHolder is HeaderViewHolder) {
-                if (viewHolder.bindingAdapterPosition < videoPosition) {
-                    viewHolder.updateHeaderCheckbox()
-                }
+                viewHolder.updateHeaderCheckbox()
             }
         }
     }
@@ -92,7 +101,8 @@ class TimelineAdapter(private val context: Context) :
     fun toggleSelectionForAllItems(select: Boolean, headerPosition: Int) {
         var position = headerPosition + 1
         while (position < itemCount && getItemViewType(position) == VIEW_TYPE_VIDEO) {
-            val videoUri = (getItem(position) as TimelineItem.VideoItem).mediaItem.localConfiguration?.uri
+            val videoUri =
+                (getItem(position) as TimelineItem.VideoItem).mediaItem.localConfiguration?.uri
             videoUri?.let {
                 if (select) {
                     selectedItems.add(it)
@@ -107,11 +117,7 @@ class TimelineAdapter(private val context: Context) :
             }
             position++
         }
-        viewHolders.forEach { viewHolder ->
-            if (viewHolder is HeaderViewHolder && viewHolder.bindingAdapterPosition == headerPosition) {
-                viewHolder.updateHeaderCheckbox()
-            }
-        }
+        updateHeaderCheckboxOnItemSelection()
     }
 
     fun exitSelectionMode() {
@@ -141,7 +147,8 @@ class TimelineAdapter(private val context: Context) :
     fun areAllVideoSelected(headerPosition: Int): Boolean {
         var position = headerPosition + 1
         while (position < itemCount && getItemViewType(position) == VIEW_TYPE_VIDEO) {
-            val videoUri = (getItem(position) as TimelineItem.VideoItem).mediaItem.localConfiguration?.uri
+            val videoUri =
+                (getItem(position) as TimelineItem.VideoItem).mediaItem.localConfiguration?.uri
             if (videoUri != null && !selectedItems.contains(videoUri)) {
                 return false
             }
@@ -156,11 +163,12 @@ class TimelineAdapter(private val context: Context) :
         val alpha = ObjectAnimator.ofFloat(checkBox, "alpha", 1.0f, 0.8f, 1.0f)
 
         val animatorSet = AnimatorSet()
-        animatorSet.playTogether(scaleX, scaleY,alpha)
+        animatorSet.playTogether(scaleX, scaleY, alpha)
         animatorSet.duration = 300
 
         return animatorSet
     }
+
 
     fun registerOnItemClickListener(listener: OnItemClickListener) {
         this.onItemClickListener = listener

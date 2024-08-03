@@ -29,61 +29,52 @@ class VideoViewHolder(
     fun bind(mediaItem: MediaItem) {
         val videoUri = mediaItem.localConfiguration?.uri ?: return
 
-        if (binding.root.tag != videoUri) {
-            binding.root.tag = videoUri
+        binding.root.tag = videoUri
 
-            CoroutineScope(Dispatchers.IO).launch {
-                val durationPair = videoDurationCache[videoUri] ?: run {
-                    retriever.setDataSource(context, videoUri)
-                    val videoDuration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+        CoroutineScope(Dispatchers.IO).launch {
+            val durationPair = videoDurationCache[videoUri] ?: run {
+                retriever.setDataSource(context, videoUri)
+                val videoDuration =
+                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
                         ?.toLongOrNull()
-                    val minutes = videoDuration?.div(1000)?.div(60) ?: 0
-                    val seconds = videoDuration?.div(1000)?.rem(60) ?: 0
-                    Pair(minutes, seconds).also { videoDurationCache.put(videoUri, it) }
-                }
+                val minutes = videoDuration?.div(1000)?.div(60) ?: 0
+                val seconds = videoDuration?.div(1000)?.rem(60) ?: 0
+                Pair(minutes, seconds).also { videoDurationCache.put(videoUri, it) }
+            }
 
-                withContext(Dispatchers.Main) {
-                    binding.itemVideoDuration.text = String.format("%02d:%02d", durationPair.first, durationPair.second)
+            withContext(Dispatchers.Main) {
+                binding.itemVideoDuration.text =
+                    String.format("%02d:%02d", durationPair.first, durationPair.second)
 
-                    Glide.with(context)
-                        .load(videoUri)
-                        .apply(RequestOptions().frame(1000000))
-                        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
-                        .into(binding.itemVideo)
-                }
+                Glide.with(context)
+                    .load(videoUri)
+                    .apply(RequestOptions().frame(0))
+                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    .into(binding.itemVideo)
             }
         }
 
-        binding.itemVideoCheckbox.visibility = if (adapter.isSelectionMode) View.VISIBLE else View.GONE
+        binding.itemVideoCheckbox.visibility =
+            if (adapter.isSelectionMode) View.VISIBLE else View.GONE
+        binding.itemVideoCheckbox.setOnCheckedChangeListener(null)
         binding.itemVideoCheckbox.isChecked = adapter.selectedItems.contains(videoUri)
 
         binding.root.setOnClickListener {
             if (adapter.isSelectionMode) {
-                if (adapter.selectedItems.contains(videoUri)) {
-                    adapter.selectedItems.remove(videoUri)
-                } else {
-                    adapter.selectedItems.add(videoUri)
-                }
-                binding.itemVideoCheckbox.isChecked = adapter.selectedItems.contains(videoUri)
-                adapter.updateSelectionCount()
-                adapter.updateHeaderCheckboxOnItemSelection(bindingAdapterPosition)
-
+                toggleSelection(videoUri)
             } else {
                 adapter.onItemClickListener?.onItemClick(bindingAdapterPosition)
             }
         }
 
-        binding.itemVideoCheckbox.setOnCheckedChangeListener { buttonView, isChecked ->
-            val animatedDrawable = buttonView.buttonDrawable as? AnimatedVectorDrawable
+        binding.itemVideoCheckbox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 adapter.selectedItems.add(videoUri)
-                animatedDrawable?.start()
             } else {
                 adapter.selectedItems.remove(videoUri)
-                animatedDrawable?.start()
             }
             adapter.updateSelectionCount()
-            adapter.updateHeaderCheckboxOnItemSelection(bindingAdapterPosition)
+            adapter.updateHeaderCheckboxOnItemSelection()
             adapter.createBounceAnimator(binding.itemVideoCheckbox).start()
         }
 
@@ -95,9 +86,20 @@ class VideoViewHolder(
             adapter.selectedItems.add(videoUri)
             binding.itemVideoCheckbox.isChecked = true
             adapter.updateSelectionCount()
-            adapter.updateHeaderCheckboxOnItemSelection(bindingAdapterPosition)
+            adapter.updateHeaderCheckboxOnItemSelection()
             true
         }
+    }
+
+    private fun toggleSelection(videoUri: Uri) {
+        if (adapter.selectedItems.contains(videoUri)) {
+            adapter.selectedItems.remove(videoUri)
+        } else {
+            adapter.selectedItems.add(videoUri)
+        }
+        binding.itemVideoCheckbox.isChecked = adapter.selectedItems.contains(videoUri)
+        adapter.updateSelectionCount()
+        adapter.updateHeaderCheckboxOnItemSelection()
     }
 }
 

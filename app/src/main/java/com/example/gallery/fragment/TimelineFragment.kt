@@ -29,6 +29,13 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
             binding.selectText.visibility = View.GONE
         }
     }
+
+    companion object {
+        fun newInstance(): TimelineFragment {
+            return TimelineFragment()
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -92,11 +99,6 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
         updateSelectedCount(selectedCount)
     }
 
-    companion object {
-        fun newInstance(): TimelineFragment {
-            return TimelineFragment()
-        }
-    }
 }
 
 
