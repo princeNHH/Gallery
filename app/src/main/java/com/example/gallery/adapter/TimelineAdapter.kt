@@ -1,5 +1,7 @@
 package com.example.gallery.adapter
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
@@ -13,6 +15,7 @@ import com.example.gallery.databinding.ItemHeaderBinding
 import com.example.gallery.databinding.ItemVideoBinding
 import android.util.LruCache
 import android.view.View
+import android.widget.CheckBox
 import androidx.media3.common.MediaItem
 import com.example.gallery.viewholder.HeaderViewHolder
 import com.example.gallery.viewholder.VideoViewHolder
@@ -146,6 +149,19 @@ class TimelineAdapter(private val context: Context) :
         }
         return true
     }
+
+    fun createBounceAnimator(checkBox: CheckBox): AnimatorSet {
+        val scaleX = ObjectAnimator.ofFloat(checkBox, "scaleX", 0.8f, 1.0f, 1.0f)
+        val scaleY = ObjectAnimator.ofFloat(checkBox, "scaleY", 0.8f, 1.0f, 1.0f)
+        val alpha = ObjectAnimator.ofFloat(checkBox, "alpha", 1.0f, 0.8f, 1.0f)
+
+        val animatorSet = AnimatorSet()
+        animatorSet.playTogether(scaleX, scaleY,alpha)
+        animatorSet.duration = 300
+
+        return animatorSet
+    }
+
     fun registerOnItemClickListener(listener: OnItemClickListener) {
         this.onItemClickListener = listener
     }

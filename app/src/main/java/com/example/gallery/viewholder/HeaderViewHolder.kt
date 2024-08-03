@@ -21,6 +21,7 @@ class HeaderViewHolder(
                 val isChecked = binding.itemHeaderCheckbox.isChecked
                 adapter.toggleSelectionForAllItems(isChecked, bindingAdapterPosition)
                 adapter.updateSelectionCount()
+                adapter.createBounceAnimator(binding.itemHeaderCheckbox).start()
             }
         }
     }

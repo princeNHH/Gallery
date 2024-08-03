@@ -22,6 +22,7 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
     private var _binding: TimelineFragmentBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: TimelineAdapter
+
     private val callback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             adapter.exitSelectionMode()
@@ -68,7 +69,7 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
         _binding = null
     }
 
-    fun updateSelectedCount(count: Int) {
+    private fun updateSelectedCount(count: Int) {
         if(count == 0){
             binding.selectText.visibility = View.VISIBLE
             binding.selectText.text = "Select items"

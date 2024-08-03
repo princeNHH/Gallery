@@ -1,6 +1,7 @@
 package com.example.gallery.viewholder
 
 import android.content.Context
+import android.graphics.drawable.AnimatedVectorDrawable
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.LruCache
@@ -66,19 +67,24 @@ class VideoViewHolder(
                 binding.itemVideoCheckbox.isChecked = adapter.selectedItems.contains(videoUri)
                 adapter.updateSelectionCount()
                 adapter.updateHeaderCheckboxOnItemSelection(bindingAdapterPosition)
+
             } else {
                 adapter.onItemClickListener?.onItemClick(bindingAdapterPosition)
             }
         }
 
-        binding.itemVideoCheckbox.setOnCheckedChangeListener { _, isChecked ->
+        binding.itemVideoCheckbox.setOnCheckedChangeListener { buttonView, isChecked ->
+            val animatedDrawable = buttonView.buttonDrawable as? AnimatedVectorDrawable
             if (isChecked) {
                 adapter.selectedItems.add(videoUri)
+                animatedDrawable?.start()
             } else {
                 adapter.selectedItems.remove(videoUri)
+                animatedDrawable?.start()
             }
             adapter.updateSelectionCount()
             adapter.updateHeaderCheckboxOnItemSelection(bindingAdapterPosition)
+            adapter.createBounceAnimator(binding.itemVideoCheckbox).start()
         }
 
         binding.root.setOnLongClickListener {
