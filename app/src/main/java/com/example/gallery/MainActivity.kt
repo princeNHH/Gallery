@@ -64,18 +64,12 @@ class MainActivity : AppCompatActivity() {
         switchFragment(timelineFragment)
         setTabUnderlineVisibility(binding.videoTabUnderline, binding.albumTabUnderline)
 
-        checkAndRequestPermissions()
+       // checkAndRequestPermissions()
     }
 
     override fun onResume() {
         super.onResume()
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_MEDIA_VIDEO
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            viewModel.loadVideos()
-        }
+        checkAndRequestPermissions()
     }
 
     private fun switchFragment(newFragment: Fragment) {
@@ -96,32 +90,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAndRequestPermissions() {
-        when {
-            ContextCompat.checkSelfPermission(
+        if (ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.READ_MEDIA_VIDEO
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                viewModel.loadVideos()
-            }
-
-            !ActivityCompat.shouldShowRequestPermissionRationale(
-                this, Manifest.permission.READ_MEDIA_VIDEO
-            ) -> {
-                requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_VIDEO)
-            }
-
-            else -> {
-                showPermissionSettingsDialog()
-            }
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            viewModel.loadVideos()
+        } else if(!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_MEDIA_VIDEO)) {
+            requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_VIDEO)
+        } else {
+            showPermissionSettingsDialog()
         }
     }
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
-        if (isGranted) {
-            viewModel.loadVideos()
-        }
     }
 
     private fun showPermissionSettingsDialog() {
