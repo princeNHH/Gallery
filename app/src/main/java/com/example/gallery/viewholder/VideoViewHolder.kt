@@ -1,12 +1,16 @@
 package com.example.gallery.viewholder
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.util.Log
 import android.util.LruCache
 import android.view.View
+import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -21,38 +25,24 @@ import kotlinx.coroutines.withContext
 class VideoViewHolder(
     private val context: Context,
     val binding: ItemVideoBinding,
-    private val retriever: MediaMetadataRetriever,
-    private val videoDurationCache: LruCache<Uri, Pair<Long, Long>>,
     private val adapter: TimelineAdapter
 ) : RecyclerView.ViewHolder(binding.root) {
 
+    @SuppressLint("DefaultLocale")
+    @OptIn(UnstableApi::class)
     fun bind(mediaItem: MediaItem) {
         val videoUri = mediaItem.localConfiguration?.uri ?: return
+        val videoDuration = mediaItem.localConfiguration?.imageDurationMs
+        val minutes = videoDuration?.div(1000)?.div(60)
+        val seconds = videoDuration?.div(1000)?.rem(60)
 
-        binding.root.tag = videoUri
+        binding.itemVideoDuration.text = String.format("%02d:%02d", minutes, seconds)
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val durationPair = videoDurationCache[videoUri] ?: run {
-                retriever.setDataSource(context, videoUri)
-                val videoDuration =
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                        ?.toLongOrNull()
-                val minutes = videoDuration?.div(1000)?.div(60) ?: 0
-                val seconds = videoDuration?.div(1000)?.rem(60) ?: 0
-                Pair(minutes, seconds).also { videoDurationCache.put(videoUri, it) }
-            }
-
-            withContext(Dispatchers.Main) {
-                binding.itemVideoDuration.text =
-                    String.format("%02d:%02d", durationPair.first, durationPair.second)
-
-                Glide.with(context)
-                    .load(videoUri)
-                    .apply(RequestOptions().frame(0))
-                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
-                    .into(binding.itemVideo)
-            }
-        }
+        Glide.with(context)
+            .load(videoUri)
+            .apply(RequestOptions().frame(0))
+            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+            .into(binding.itemVideo)
 
         binding.itemVideoCheckbox.visibility =
             if (adapter.isSelectionMode) View.VISIBLE else View.GONE

@@ -3,6 +3,7 @@ package com.example.gallery.adapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Context
+import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.view.LayoutInflater
@@ -29,13 +30,6 @@ class TimelineAdapter(private val context: Context) :
     var isSelectionMode = false
     val selectedItems = mutableSetOf<Uri>()
     private val viewHolders = mutableListOf<RecyclerView.ViewHolder>()
-    private val retriever = MediaMetadataRetriever()
-
-    private val videoDurationCache = object : LruCache<Uri, Pair<Long, Long>>(100) {
-        override fun sizeOf(key: Uri, value: Pair<Long, Long>): Int {
-            return 1
-        }
-    }
 
     companion object {
         const val VIEW_TYPE_VIDEO = 0
@@ -64,8 +58,6 @@ class TimelineAdapter(private val context: Context) :
                 VideoViewHolder(
                     context,
                     binding,
-                    retriever,
-                    videoDurationCache,
                     this
                 ).also { viewHolders.add(it) }
             }
