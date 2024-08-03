@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
+import com.example.gallery.MainActivity
 import com.example.gallery.adapter.TimelineAdapter
 import com.example.gallery.databinding.ItemVideoBinding
 import kotlinx.coroutines.CoroutineScope
@@ -25,7 +26,7 @@ import kotlinx.coroutines.withContext
 class VideoViewHolder(
     private val context: Context,
     val binding: ItemVideoBinding,
-    private val adapter: TimelineAdapter
+    val adapter: TimelineAdapter
 ) : RecyclerView.ViewHolder(binding.root) {
 
     @SuppressLint("DefaultLocale")
@@ -77,6 +78,9 @@ class VideoViewHolder(
             binding.itemVideoCheckbox.isChecked = true
             adapter.updateSelectionCount()
             adapter.updateHeaderCheckboxOnItemSelection()
+
+            //gone bottom bar when in selection mode
+            (context as MainActivity).binding.bottomBar.visibility = View.GONE
             true
         }
     }

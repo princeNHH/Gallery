@@ -73,7 +73,10 @@ class TimelineAdapter(private val context: Context) :
         }
     }
 
-    override fun onCurrentListChanged(previousList: List<TimelineItem>, currentList: List<TimelineItem>) {
+    override fun onCurrentListChanged(
+        previousList: List<TimelineItem>,
+        currentList: List<TimelineItem>
+    ) {
         super.onCurrentListChanged(previousList, currentList)
         updateHeaderCheckboxOnItemSelection()
     }
@@ -129,9 +132,11 @@ class TimelineAdapter(private val context: Context) :
             if (viewHolder is VideoViewHolder) {
                 viewHolder.binding.itemVideoCheckbox.visibility =
                     if (visible) View.VISIBLE else View.GONE
+                viewHolder.adapter.createBounceAnimator(viewHolder.binding.itemVideoCheckbox).start()
             }
             if (viewHolder is HeaderViewHolder) {
                 viewHolder.setCheckBoxHeader(visible)
+                viewHolder.adapter.createBounceAnimator(viewHolder.binding.itemHeaderCheckbox).start()
             }
         }
     }

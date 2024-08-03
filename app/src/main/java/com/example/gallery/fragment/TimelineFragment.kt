@@ -27,6 +27,7 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
         override fun handleOnBackPressed() {
             adapter.exitSelectionMode()
             binding.selectText.visibility = View.GONE
+            (activity as MainActivity).binding.bottomBar.visibility = View.VISIBLE
         }
     }
 

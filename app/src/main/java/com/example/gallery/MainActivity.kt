@@ -34,7 +34,7 @@ import com.example.gallery.fragment.TimelineFragment
 import com.example.gallery.fragment.ViewPagerFragment
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
+    lateinit var binding: ActivityMainBinding
     private lateinit var timelineFragment: TimelineFragment
     private lateinit var albumFragment: AlbumFragment
     private var currentFragment: Fragment? = null

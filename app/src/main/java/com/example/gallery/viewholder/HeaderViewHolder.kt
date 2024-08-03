@@ -7,8 +7,8 @@ import com.example.gallery.adapter.TimelineAdapter
 import com.example.gallery.databinding.ItemHeaderBinding
 
 class HeaderViewHolder(
-    private val binding: ItemHeaderBinding,
-    private val adapter: TimelineAdapter
+    val binding: ItemHeaderBinding,
+    val adapter: TimelineAdapter
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(title: String) {
@@ -22,10 +22,10 @@ class HeaderViewHolder(
                 adapter.toggleSelectionForAllItems(isChecked, bindingAdapterPosition)
                 adapter.updateSelectionCount()
                 adapter.updateHeaderCheckboxOnItemSelection()
+                adapter.createBounceAnimator(binding.itemHeaderCheckbox).start()
             }
         }
     }
-
 
     fun setCheckBoxHeader(visible: Boolean) {
         binding.itemHeaderCheckbox.visibility = if (visible) View.VISIBLE else View.GONE
