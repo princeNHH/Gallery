@@ -54,16 +54,16 @@ class VideoViewHolder(
         }
 
         binding.itemVideoCheckbox.visibility = if (adapter.isSelectionMode) View.VISIBLE else View.GONE
-        binding.itemVideoCheckbox.isChecked = adapter.selectedItems.contains(bindingAdapterPosition)
+        binding.itemVideoCheckbox.isChecked = adapter.selectedItems.contains(videoUri)
 
         binding.root.setOnClickListener {
             if (adapter.isSelectionMode) {
-                if (adapter.selectedItems.contains(bindingAdapterPosition)) {
-                    adapter.selectedItems.remove(bindingAdapterPosition)
+                if (adapter.selectedItems.contains(videoUri)) {
+                    adapter.selectedItems.remove(videoUri)
                 } else {
-                    adapter.selectedItems.add(bindingAdapterPosition)
+                    adapter.selectedItems.add(videoUri)
                 }
-                binding.itemVideoCheckbox.isChecked = adapter.selectedItems.contains(bindingAdapterPosition)
+                binding.itemVideoCheckbox.isChecked = adapter.selectedItems.contains(videoUri)
                 adapter.updateSelectionCount()
                 adapter.updateHeaderCheckboxOnItemSelection(bindingAdapterPosition)
             } else {
@@ -73,9 +73,9 @@ class VideoViewHolder(
 
         binding.itemVideoCheckbox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                adapter.selectedItems.add(bindingAdapterPosition)
+                adapter.selectedItems.add(videoUri)
             } else {
-                adapter.selectedItems.remove(bindingAdapterPosition)
+                adapter.selectedItems.remove(videoUri)
             }
             adapter.updateSelectionCount()
             adapter.updateHeaderCheckboxOnItemSelection(bindingAdapterPosition)
@@ -86,7 +86,7 @@ class VideoViewHolder(
                 adapter.isSelectionMode = true
                 adapter.toggleCheckboxVisibility(true)
             }
-            adapter.selectedItems.add(bindingAdapterPosition)
+            adapter.selectedItems.add(videoUri)
             binding.itemVideoCheckbox.isChecked = true
             adapter.updateSelectionCount()
             adapter.updateHeaderCheckboxOnItemSelection(bindingAdapterPosition)
@@ -94,3 +94,4 @@ class VideoViewHolder(
         }
     }
 }
+

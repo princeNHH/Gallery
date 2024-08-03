@@ -13,6 +13,7 @@ import com.example.gallery.databinding.ItemHeaderBinding
 import com.example.gallery.databinding.ItemVideoBinding
 import android.util.LruCache
 import android.view.View
+import androidx.media3.common.MediaItem
 import com.example.gallery.viewholder.HeaderViewHolder
 import com.example.gallery.viewholder.VideoViewHolder
 
@@ -23,7 +24,7 @@ class TimelineAdapter(private val context: Context) :
     private var onItemLongClickListener: OnItemLongClickListener? = null
     private var onSelectionChangedListener: OnSelectionChangedListener? = null
     var isSelectionMode = false
-    val selectedItems = mutableSetOf<Int>()
+    val selectedItems = mutableSetOf<Uri>()
     private val viewHolders = mutableListOf<RecyclerView.ViewHolder>()
     private val retriever = MediaMetadataRetriever()
 
@@ -88,14 +89,17 @@ class TimelineAdapter(private val context: Context) :
     fun toggleSelectionForAllItems(select: Boolean, headerPosition: Int) {
         var position = headerPosition + 1
         while (position < itemCount && getItemViewType(position) == VIEW_TYPE_VIDEO) {
-            if (select) {
-                selectedItems.add(position)
-            } else {
-                selectedItems.remove(position)
-            }
-            viewHolders.forEach { viewHolder ->
-                if (viewHolder is VideoViewHolder && viewHolder.bindingAdapterPosition == position) {
-                    viewHolder.binding.itemVideoCheckbox.isChecked = select
+            val videoUri = (getItem(position) as TimelineItem.VideoItem).mediaItem.localConfiguration?.uri
+            videoUri?.let {
+                if (select) {
+                    selectedItems.add(it)
+                } else {
+                    selectedItems.remove(it)
+                }
+                viewHolders.forEach { viewHolder ->
+                    if (viewHolder is VideoViewHolder && viewHolder.bindingAdapterPosition == position) {
+                        viewHolder.binding.itemVideoCheckbox.isChecked = select
+                    }
                 }
             }
             position++
@@ -131,6 +135,17 @@ class TimelineAdapter(private val context: Context) :
         }
     }
 
+    fun areAllVideoSelected(headerPosition: Int): Boolean {
+        var position = headerPosition + 1
+        while (position < itemCount && getItemViewType(position) == VIEW_TYPE_VIDEO) {
+            val videoUri = (getItem(position) as TimelineItem.VideoItem).mediaItem.localConfiguration?.uri
+            if (videoUri != null && !selectedItems.contains(videoUri)) {
+                return false
+            }
+            position++
+        }
+        return true
+    }
     fun registerOnItemClickListener(listener: OnItemClickListener) {
         this.onItemClickListener = listener
     }
