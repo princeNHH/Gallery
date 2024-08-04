@@ -3,33 +3,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/viewpager"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/white">
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <VideoView
-        android:id="@+id/player_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:paddingBottom="30dp" />
-
     <FrameLayout
         android:id="@+id/tool_bar_player"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="110dp"
         android:layout_alignParentTop="true"
         android:alpha="0.95"
         android:background="@color/white">
 
         <ImageView
+            android:id="@+id/back_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start|center"
             android:layout_marginStart="@dimen/margin_icon_bottom_bar"
+            android:layout_marginTop="10dp"
             android:background="@drawable/ripple_button"
             android:clickable="true"
             android:focusable="true"
@@ -41,6 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end|center"
             android:layout_marginStart="@dimen/margin_icon_bottom_bar"
+            android:layout_marginTop="10dp"
             android:layout_marginEnd="@dimen/margin_icon_bottom_bar"
             android:background="@drawable/ripple_button"
             android:clickable="true"
@@ -50,12 +47,18 @@
 
     </FrameLayout>
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/film_strip"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_above="@id/bottom_bar_player"
+        android:background="@color/white" />
+
     <LinearLayout
         android:id="@+id/bottom_bar_player"
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:layout_alignParentBottom="true"
-        android:alpha="0.95"
         android:background="@color/white"
         android:gravity="center"
         android:orientation="horizontal">

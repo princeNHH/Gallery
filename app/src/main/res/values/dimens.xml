@@ -9,7 +9,7 @@
     <dimen name="sub_tab_padding_vertical">10dp</dimen>
     <dimen name="underline_height_bottom_bar">2dp</dimen>
     <dimen name="text_size_bottom_bar">18sp</dimen>
-    <dimen name="margin_icon_bottom_bar">18dp</dimen>
+    <dimen name="margin_icon_bottom_bar">12dp</dimen>
     <dimen name="padding_icon_viewpager">10dp</dimen>
 
 </resources>

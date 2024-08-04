@@ -7,14 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.gallery.MainActivity
+import com.example.gallery.R
+import com.example.gallery.TimelineItem
 import com.example.gallery.adapter.TimelineAdapter
 import com.example.gallery.databinding.TimelineFragmentBinding
-import com.example.gallery.viewmodel.VideoViewModel
 
 class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
     TimelineAdapter.OnItemLongClickListener, TimelineAdapter.OnSelectionChangedListener {
@@ -89,7 +87,23 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
     }
 
     override fun onItemClick(position: Int) {
-        // Handle item click
+        val videoUriPositions = adapter.currentList.mapIndexedNotNull { index, item ->
+            if (item is TimelineItem.VideoItem) {
+                item.mediaItem.localConfiguration?.uri?.let { uri -> Pair(index, uri) }
+            } else {
+                null
+            }
+        }
+
+        val videoPosition = videoUriPositions.indexOfFirst { it.first == position }
+        val selectedUri = videoUriPositions[videoPosition].second
+        val videoUris = videoUriPositions.map { it.second }
+
+        val fragment = ViewPagerFragment.newInstance(videoUris, selectedUri)
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.main, fragment)
+            .addToBackStack(null)
+            .commit()
     }
 
     override fun onItemLongClick(position: Int) {
