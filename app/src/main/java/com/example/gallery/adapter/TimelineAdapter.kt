@@ -143,7 +143,8 @@ class TimelineAdapter(private val context: Context) :
 
     fun areAllVideoSelected(headerPosition: Int): Boolean {
         var position = headerPosition + 1
-        while (position < itemCount && getItemViewType(position) == VIEW_TYPE_VIDEO) {
+        while (position < itemCount) {
+            if(getItemViewType(position) == VIEW_TYPE_HEADER) break;
             val videoUri =
                 (getItem(position) as TimelineItem.VideoItem).mediaItem.localConfiguration?.uri
             if (videoUri != null && !selectedItems.contains(videoUri)) {
