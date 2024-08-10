@@ -1,5 +1,3 @@
-@file:Suppress("MemberVisibilityCanBePrivate", "unused")
-
 package com.example.gallery.helper
 
 import android.content.Context
@@ -24,7 +22,6 @@ enum class Mode {
 
 typealias AutoScrollListener = (scrolling: Boolean) -> Unit
 
-/** @author Aidan Follestad (afollestad) */
 class DragSelectTouchListener private constructor(
     context: Context,
     private val receiver: DragSelectReceiver
@@ -152,7 +149,7 @@ class DragSelectTouchListener private constructor(
             index = initialSelection,
             selected = true
         )
-        this.dragSelectActive = active
+        this.dragSelectActive = true
         this.initialSelection = initialSelection
         this.lastDraggedIndex = initialSelection
 
@@ -179,7 +176,7 @@ class DragSelectTouchListener private constructor(
                 hotspotBottomBoundEnd = view.measuredHeight - hotspotOffsetBottom
                 Log.d(
                     "DragSelectTL",
-                    "Hotspot top bound = $hotspotTopBoundStart to $hotspotTopBoundEnd and $view.measuredHeight"
+                    "Hotspot top bound = $hotspotTopBoundStart to $hotspotTopBoundEnd and ${view.measuredHeight}"
                 )
                 Log.d(
                     "DragSelectTL",
@@ -327,9 +324,6 @@ class DragSelectTouchListener private constructor(
             if (min > -1 && min < to) {
                 // Unselect items that were selected during this drag but no longer are
                 for (i in min until to) {
-                    if (i == from) {
-                        continue
-                    }
                     setSelected(i, false)
                 }
             }
@@ -346,9 +340,6 @@ class DragSelectTouchListener private constructor(
             if (max > -1 && max > to) {
                 // Unselect items that were selected during this drag but no longer are
                 for (i in to + 1..max) {
-                    if (i == from) {
-                        continue
-                    }
                     setSelected(i, false)
                 }
             }

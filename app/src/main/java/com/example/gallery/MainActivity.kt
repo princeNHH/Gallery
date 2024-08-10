@@ -38,8 +38,21 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        timelineFragment = TimelineFragment.newInstance()
-        albumFragment = AlbumFragment()
+        if (savedInstanceState == null) {
+            timelineFragment = TimelineFragment.newInstance()
+            albumFragment = AlbumFragment()
+            switchFragment(timelineFragment)
+            setTabUnderlineVisibility(binding.videoTabUnderline, binding.albumTabUnderline)
+        } else {
+            timelineFragment = supportFragmentManager.findFragmentByTag(TimelineFragment::class.java.simpleName) as? TimelineFragment
+                ?: TimelineFragment.newInstance()
+
+            albumFragment = supportFragmentManager.findFragmentByTag(AlbumFragment::class.java.simpleName) as? AlbumFragment
+                ?: AlbumFragment()
+
+            // Khôi phục Fragment hiện tại
+            currentFragment = supportFragmentManager.getFragment(savedInstanceState, "currentFragment")
+        }
 
         binding.videoTab.setOnClickListener {
             switchFragment(timelineFragment)
@@ -50,12 +63,11 @@ class MainActivity : AppCompatActivity() {
             switchFragment(albumFragment)
             setTabUnderlineVisibility(binding.albumTabUnderline, binding.videoTabUnderline)
         }
+    }
 
-        // Load initial fragment
-        switchFragment(timelineFragment)
-        setTabUnderlineVisibility(binding.videoTabUnderline, binding.albumTabUnderline)
-
-       // checkAndRequestPermissions()
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        supportFragmentManager.putFragment(outState, "currentFragment", currentFragment!!)
     }
 
     override fun onResume() {

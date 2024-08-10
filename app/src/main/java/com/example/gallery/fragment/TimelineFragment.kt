@@ -1,5 +1,8 @@
 package com.example.gallery.fragment
 
+import android.content.res.Configuration
+import android.graphics.Rect
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,6 +10,7 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.gallery.MainActivity
 import com.example.gallery.R
 import com.example.gallery.TimelineItem
@@ -48,20 +52,38 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
         adapter = TimelineAdapter(requireContext()).apply {
             registerOnItemClickListener(this@TimelineFragment)
             registerOnItemLongClickListener(this@TimelineFragment)
             registerOnSelectionChangedListener(this@TimelineFragment)
         }
 
-        val gridLayoutManager = GridLayoutManager(requireContext(), 3).apply {
-            spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-                override fun getSpanSize(position: Int): Int {
-                    return if (adapter.getItemViewType(position) == TimelineAdapter.VIEW_TYPE_HEADER) 3 else 1
-                }
+        savedInstanceState?.let {
+            val selectedUris =
+                it.getStringArray("selected_uris")?.map { uri -> Uri.parse(uri) } ?: emptyList()
+            adapter.isSelectionMode = it.getBoolean("is_selection_mode", false)
+
+            if (adapter.isSelectionMode) {
+                adapter.selectedItems.addAll(selectedUris)
+                adapter.toggleCheckboxVisibility(true)
+                adapter.updateSelectionCount()
+                adapter.updateHeaderCheckboxOnItemSelection()
             }
         }
 
+        val spanCount =
+            if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) adapter.getSpanCountForOrientation(
+                binding.rcvTimelineFragment
+            ) else adapter.getSpanCountForOrientation(binding.rcvTimelineFragment)
+        val gridLayoutManager = GridLayoutManager(requireContext(), spanCount).apply {
+            spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                override fun getSpanSize(position: Int): Int {
+                    return if (adapter.getItemViewType(position) == TimelineAdapter.VIEW_TYPE_HEADER) spanCount else 1
+                }
+            }
+        }
+        setItemSpacing()
         binding.rcvTimelineFragment.layoutManager = gridLayoutManager
         binding.rcvTimelineFragment.adapter = adapter
         binding.rcvTimelineFragment.itemAnimator = null
@@ -71,10 +93,8 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
                 adapter.submitList(items)
             }
         }
-        dragSelectTouchListener = DragSelectTouchListener.create(requireContext(), adapter) {
-            mode = Mode.RANGE
-        }
 
+        dragSelectTouchListener = DragSelectTouchListener.create(requireContext(), adapter)
         binding.rcvTimelineFragment.addOnItemTouchListener(dragSelectTouchListener)
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
@@ -82,9 +102,36 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
 
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.rcvTimelineFragment.adapter = null
         _binding = null
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        val selectedUris = adapter.selectedItems.map { it.toString() }.toTypedArray()
+        outState.putStringArray("selected_uris", selectedUris)
+        outState.putBoolean("is_selection_mode", adapter.isSelectionMode)
+    }
+
+    private fun setItemSpacing() {
+        val itemSpacing =
+            resources.getDimensionPixelSize(R.dimen.item_spacing) // Thêm giá trị khoảng cách trong res/values/dimens.xml
+
+        binding.rcvTimelineFragment.addItemDecoration(
+            object : RecyclerView.ItemDecoration() {
+                override fun getItemOffsets(
+                    outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State
+                ) {
+                    outRect.set(
+                        itemSpacing, // left
+                        itemSpacing, // top
+                        itemSpacing, // right
+                        itemSpacing // bottom
+                    )
+                }
+            }
+        )
+    }
     private fun updateSelectedCount(count: Int) {
         if (count == 0) {
             binding.selectText.visibility = View.VISIBLE

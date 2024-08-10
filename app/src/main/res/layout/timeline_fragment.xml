@@ -29,6 +29,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingTop="@dimen/tool_bar_height"
-        android:paddingBottom="74dp"/>
+        android:paddingBottom="74dp"
+        android:layout_marginHorizontal="@dimen/rcv_margin_horizontal"/>
 
 </RelativeLayout>

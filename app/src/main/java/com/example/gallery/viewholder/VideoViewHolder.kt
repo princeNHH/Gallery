@@ -25,7 +25,6 @@ class VideoViewHolder(
     @OptIn(UnstableApi::class)
     fun bind(mediaItem: MediaItem) {
         val videoUri = mediaItem.localConfiguration?.uri ?: return
-        binding.root.setTag(R.id.item_video, videoUri)
         val videoDuration = mediaItem.localConfiguration?.imageDurationMs
         val minutes = videoDuration?.div(1000)?.div(60)
         val seconds = videoDuration?.div(1000)?.rem(60)

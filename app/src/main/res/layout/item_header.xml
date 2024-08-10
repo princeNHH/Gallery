@@ -12,7 +12,8 @@
         android:background="@drawable/ripple_button"
         android:visibility="gone"
         android:gravity="start|center"
-        android:theme="@style/Theme.AppCompat"/>
+        android:theme="@style/Theme.AppCompat"
+        android:padding="3dp"/>
     <TextView
         android:id="@+id/item_header_text"
         android:layout_width="match_parent"
@@ -21,7 +22,7 @@
         android:paddingStart="10dp"
         android:textColor="@color/black"
         android:textStyle="bold"
-        android:textSize="18sp"
+        android:textSize="16sp"
         android:gravity="start|center"/>
 
 </LinearLayout>
