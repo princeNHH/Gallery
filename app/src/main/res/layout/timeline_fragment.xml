@@ -23,9 +23,12 @@
             android:visibility="gone"
             tools:ignore="RtlSymmetry" />
     </FrameLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rcv_timeline_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="@dimen/tool_bar_height"/>
+        android:paddingTop="@dimen/tool_bar_height"
+        android:paddingBottom="74dp"/>
+
 </RelativeLayout>

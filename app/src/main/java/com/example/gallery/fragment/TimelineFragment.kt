@@ -1,7 +1,6 @@
 package com.example.gallery.fragment
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +12,8 @@ import com.example.gallery.R
 import com.example.gallery.TimelineItem
 import com.example.gallery.adapter.TimelineAdapter
 import com.example.gallery.databinding.TimelineFragmentBinding
+import com.example.gallery.helper.DragSelectTouchListener
+import com.example.gallery.helper.Mode
 
 class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
     TimelineAdapter.OnItemLongClickListener, TimelineAdapter.OnSelectionChangedListener {
@@ -20,6 +21,7 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
     private var _binding: TimelineFragmentBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: TimelineAdapter
+    private lateinit var dragSelectTouchListener: DragSelectTouchListener
 
     private val callback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -62,10 +64,18 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
 
         binding.rcvTimelineFragment.layoutManager = gridLayoutManager
         binding.rcvTimelineFragment.adapter = adapter
+        binding.rcvTimelineFragment.itemAnimator = null
 
         (activity as MainActivity).viewModel.timelineItems.observe(viewLifecycleOwner) { items ->
-            adapter.submitList(items)
+            if (adapter.currentList != items) {
+                adapter.submitList(items)
+            }
         }
+        dragSelectTouchListener = DragSelectTouchListener.create(requireContext(), adapter) {
+            mode = Mode.RANGE
+        }
+
+        binding.rcvTimelineFragment.addOnItemTouchListener(dragSelectTouchListener)
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
     }
@@ -76,10 +86,10 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
     }
 
     private fun updateSelectedCount(count: Int) {
-        if(count == 0){
+        if (count == 0) {
             binding.selectText.visibility = View.VISIBLE
             binding.selectText.text = "Select items"
-        }else{
+        } else {
             binding.selectText.visibility = View.VISIBLE
             binding.selectText.text = "$count selected"
         }
@@ -107,13 +117,12 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
     }
 
     override fun onItemLongClick(position: Int) {
-        // Handle item long click
+        dragSelectTouchListener.setIsActive(true, position)
     }
 
     override fun onSelectionChanged(selectedCount: Int) {
         updateSelectedCount(selectedCount)
     }
-
 }
 
 

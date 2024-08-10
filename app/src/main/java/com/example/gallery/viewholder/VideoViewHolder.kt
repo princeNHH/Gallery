@@ -2,11 +2,6 @@ package com.example.gallery.viewholder
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.drawable.AnimatedVectorDrawable
-import android.media.MediaMetadataRetriever
-import android.net.Uri
-import android.util.Log
-import android.util.LruCache
 import android.view.View
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
@@ -16,12 +11,9 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.example.gallery.MainActivity
+import com.example.gallery.R
 import com.example.gallery.adapter.TimelineAdapter
 import com.example.gallery.databinding.ItemVideoBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class VideoViewHolder(
     private val context: Context,
@@ -33,6 +25,7 @@ class VideoViewHolder(
     @OptIn(UnstableApi::class)
     fun bind(mediaItem: MediaItem) {
         val videoUri = mediaItem.localConfiguration?.uri ?: return
+        binding.root.setTag(R.id.item_video, videoUri)
         val videoDuration = mediaItem.localConfiguration?.imageDurationMs
         val minutes = videoDuration?.div(1000)?.div(60)
         val seconds = videoDuration?.div(1000)?.rem(60)
@@ -49,10 +42,11 @@ class VideoViewHolder(
             if (adapter.isSelectionMode) View.VISIBLE else View.GONE
         binding.itemVideoCheckbox.setOnCheckedChangeListener(null)
         binding.itemVideoCheckbox.isChecked = adapter.selectedItems.contains(videoUri)
+        binding.itemBlurFrame.visibility = if (adapter.selectedItems.contains(videoUri)) View.VISIBLE else View.GONE
 
         binding.root.setOnClickListener {
             if (adapter.isSelectionMode) {
-                toggleSelection(videoUri)
+                adapter.toggleSelection(videoUri, bindingAdapterPosition)
             } else {
                 adapter.onItemClickListener?.onItemClick(bindingAdapterPosition)
             }
@@ -71,29 +65,18 @@ class VideoViewHolder(
 
         binding.root.setOnLongClickListener {
             if (!adapter.isSelectionMode) {
-                adapter.isSelectionMode = true
-                adapter.toggleCheckboxVisibility(true)
+                adapter.onItemLongClickListener?.onItemLongClick(bindingAdapterPosition)
+                adapter.enterSelectionMode()
             }
             adapter.selectedItems.add(videoUri)
             binding.itemVideoCheckbox.isChecked = true
+            binding.itemBlurFrame.visibility = View.VISIBLE
             adapter.updateSelectionCount()
             adapter.updateHeaderCheckboxOnItemSelection()
-
-            //gone bottom bar when in selection mode
+            adapter.onItemLongClickListener?.onItemLongClick(bindingAdapterPosition)
             (context as MainActivity).binding.bottomBar.visibility = View.GONE
             true
         }
-    }
-
-    private fun toggleSelection(videoUri: Uri) {
-        if (adapter.selectedItems.contains(videoUri)) {
-            adapter.selectedItems.remove(videoUri)
-        } else {
-            adapter.selectedItems.add(videoUri)
-        }
-        binding.itemVideoCheckbox.isChecked = adapter.selectedItems.contains(videoUri)
-        adapter.updateSelectionCount()
-        adapter.updateHeaderCheckboxOnItemSelection()
     }
 }
 

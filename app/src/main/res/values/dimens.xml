@@ -11,5 +11,6 @@
     <dimen name="text_size_bottom_bar">18sp</dimen>
     <dimen name="margin_icon_bottom_bar">12dp</dimen>
     <dimen name="padding_icon_viewpager">10dp</dimen>
+    <dimen name="dsrv_defaultHotspotHeight">@dimen/tool_bar_height</dimen>
 
 </resources>

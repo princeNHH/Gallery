@@ -1,37 +1,28 @@
 package com.example.gallery
 
-import com.example.gallery.viewmodel.VideoViewModel
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
-import android.widget.VideoView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import androidx.media3.common.util.Log
-import androidx.viewpager2.widget.ViewPager2
-import com.example.gallery.adapter.TimelineAdapter
 import com.example.gallery.databinding.ActivityMainBinding
 import com.example.gallery.fragment.AlbumFragment
 import com.example.gallery.fragment.TimelineFragment
-import com.example.gallery.fragment.ViewPagerFragment
+import com.example.gallery.viewmodel.VideoViewModel
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding

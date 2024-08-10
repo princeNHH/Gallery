@@ -10,6 +10,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop" />
+    <FrameLayout
+        android:id="@+id/item_blur_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#4D000000"
+        android:visibility="gone"/>
     <CheckBox
         android:id="@+id/item_video_checkbox"
         android:layout_width="25dp"
@@ -48,4 +54,5 @@
             android:textSize="9sp"
             tools:ignore="SmallSp" />
     </LinearLayout>
+
 </RelativeLayout>

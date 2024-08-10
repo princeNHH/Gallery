@@ -3,29 +3,26 @@ package com.example.gallery.adapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Context
-import android.graphics.Bitmap
-import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gallery.TimelineItem
 import com.example.gallery.databinding.ItemHeaderBinding
 import com.example.gallery.databinding.ItemVideoBinding
-import android.util.LruCache
-import android.view.View
-import android.widget.CheckBox
-import androidx.media3.common.MediaItem
+import com.example.gallery.helper.DragSelectReceiver
 import com.example.gallery.viewholder.HeaderViewHolder
 import com.example.gallery.viewholder.VideoViewHolder
 
 class TimelineAdapter(private val context: Context) :
-    ListAdapter<TimelineItem, RecyclerView.ViewHolder>(TimelineDiffCallBack()) {
+    ListAdapter<TimelineItem, RecyclerView.ViewHolder>(TimelineDiffCallBack()), DragSelectReceiver {
 
     var onItemClickListener: OnItemClickListener? = null
-    private var onItemLongClickListener: OnItemLongClickListener? = null
+    var onItemLongClickListener: OnItemLongClickListener? = null
     private var onSelectionChangedListener: OnSelectionChangedListener? = null
     var isSelectionMode = false
     val selectedItems = mutableSetOf<Uri>()
@@ -107,6 +104,7 @@ class TimelineAdapter(private val context: Context) :
                 viewHolders.forEach { viewHolder ->
                     if (viewHolder is VideoViewHolder && viewHolder.bindingAdapterPosition == position) {
                         viewHolder.binding.itemVideoCheckbox.isChecked = select
+                        viewHolder.binding.itemBlurFrame.visibility = if (select) View.VISIBLE else View.GONE
                     }
                 }
             }
@@ -122,6 +120,8 @@ class TimelineAdapter(private val context: Context) :
         viewHolders.forEach { viewHolder ->
             if (viewHolder is HeaderViewHolder) {
                 toggleSelectionForAllItems(false, viewHolder.bindingAdapterPosition)
+            } else if (viewHolder is VideoViewHolder) {
+                viewHolder.binding.itemBlurFrame.visibility = View.GONE
             }
         }
         updateSelectionCount()
@@ -141,6 +141,7 @@ class TimelineAdapter(private val context: Context) :
         }
     }
 
+
     fun areAllVideoSelected(headerPosition: Int): Boolean {
         var position = headerPosition + 1
         while (position < itemCount) {
@@ -154,6 +155,29 @@ class TimelineAdapter(private val context: Context) :
         }
         return true
     }
+
+    fun toggleSelection(videoUri: Uri, position: Int) {
+        if (selectedItems.contains(videoUri)) {
+            selectedItems.remove(videoUri)
+        } else {
+            selectedItems.add(videoUri)
+        }
+        notifyItemChanged(position)
+        updateSelectionCount()
+        updateHeaderCheckboxOnItemSelection()
+    }
+
+    fun getUriAtPosition(position: Int): Uri? {
+        // Ensure the position is within bounds
+        if (position in 0 until itemCount) {
+            val item = currentList.getOrNull(position)
+            if (item is TimelineItem.VideoItem) {
+                return item.mediaItem.localConfiguration?.uri
+            }
+        }
+        return null
+    }
+
 
     fun createBounceAnimator(checkBox: CheckBox): AnimatorSet {
         val scaleX = ObjectAnimator.ofFloat(checkBox, "scaleX", 0.8f, 1.0f, 1.0f)
@@ -180,6 +204,14 @@ class TimelineAdapter(private val context: Context) :
         this.onSelectionChangedListener = listener
     }
 
+
+    fun enterSelectionMode() {
+        if (!isSelectionMode) {
+            isSelectionMode = true
+            toggleCheckboxVisibility(true)
+        }
+    }
+
     interface OnItemClickListener {
         fun onItemClick(position: Int)
     }
@@ -200,5 +232,24 @@ class TimelineAdapter(private val context: Context) :
         override fun areContentsTheSame(oldItem: TimelineItem, newItem: TimelineItem): Boolean {
             return oldItem == newItem
         }
+    }
+
+    override fun setSelected(index: Int, selected: Boolean) {
+        if(selected && !selectedItems.contains(getUriAtPosition(index))) {
+            getUriAtPosition(index)?.let { selectedItems.add(it) }
+        } else if(!selected && selectedItems.contains(getUriAtPosition(index))) {
+            selectedItems.remove(getUriAtPosition(index))
+        }
+        updateSelectionCount()
+        notifyItemChanged(index)
+        updateHeaderCheckboxOnItemSelection()
+    }
+
+    override fun isSelected(index: Int): Boolean {
+        return selectedItems.contains(getUriAtPosition(index))
+    }
+
+    override fun isIndexSelectable(index: Int): Boolean {
+        return true
     }
 }
