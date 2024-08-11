@@ -52,7 +52,8 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_above="@id/bottom_bar_player"
-        android:background="@color/white" />
+        android:background="@color/white"
+        android:alpha="0.95"/>
 
     <LinearLayout
         android:id="@+id/bottom_bar_player"
@@ -61,7 +62,8 @@
         android:layout_alignParentBottom="true"
         android:background="@color/white"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:alpha="0.95">
 
         <ImageView
             android:layout_width="wrap_content"

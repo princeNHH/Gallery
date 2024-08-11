@@ -4,6 +4,7 @@
     android:id="@+id/timeline_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <FrameLayout
         android:id="@+id/tool_bar"
         android:layout_width="match_parent"
@@ -17,9 +18,9 @@
             android:paddingStart="28dp"
             android:paddingBottom="16dp"
             android:text="Select"
-            android:textStyle="bold"
             android:textColor="@color/black"
             android:textSize="24sp"
+            android:textStyle="bold"
             android:visibility="gone"
             tools:ignore="RtlSymmetry" />
     </FrameLayout>
@@ -28,8 +29,126 @@
         android:id="@+id/rcv_timeline_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginHorizontal="@dimen/rcv_margin_horizontal"
         android:paddingTop="@dimen/tool_bar_height"
-        android:paddingBottom="74dp"
-        android:layout_marginHorizontal="@dimen/rcv_margin_horizontal"/>
+        android:paddingBottom="74dp" />
+
+    <LinearLayout
+        android:id="@+id/bottom_bar_controller"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/white"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingBottom="10dp"
+        android:visibility="visible"
+        android:weightSum="4">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/ripple_bottom_bar_controller"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/padding_icon_viewpager"
+                android:src="@drawable/create_icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Create"
+                android:textSize="12sp"
+                android:translationY="-10dp"
+                android:translationZ="1dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/ripple_bottom_bar_controller"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/padding_icon_viewpager"
+                android:src="@drawable/share_icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Share"
+                android:textSize="12sp"
+                android:translationY="-10dp"
+                android:translationZ="1dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/ripple_bottom_bar_controller"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/padding_icon_viewpager"
+                android:src="@drawable/delete_icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Delete"
+                android:textSize="12sp"
+                android:translationY="-10dp"
+                android:translationZ="1dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/ripple_bottom_bar_controller"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/padding_icon_viewpager"
+                android:src="@drawable/more_icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="More"
+                android:textSize="12sp"
+                android:translationY="-10dp"
+                android:translationZ="1dp" />
+        </LinearLayout>
+    </LinearLayout>
+
 
 </RelativeLayout>

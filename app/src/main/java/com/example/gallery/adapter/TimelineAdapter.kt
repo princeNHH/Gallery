@@ -155,11 +155,13 @@ class TimelineAdapter(private val context: Context) :
                     if (visible) View.VISIBLE else View.GONE
                 viewHolder.adapter.createBounceAnimator(viewHolder.binding.itemVideoCheckbox)
                     .start()
+
             }
             if (viewHolder is HeaderViewHolder) {
                 viewHolder.setCheckBoxHeader(visible)
                 viewHolder.adapter.createBounceAnimator(viewHolder.binding.itemHeaderCheckbox)
                     .start()
+                createSlideAnimator(viewHolder.binding.itemHeaderText)
             }
         }
     }
@@ -212,6 +214,18 @@ class TimelineAdapter(private val context: Context) :
         animatorSet.duration = 300
 
         return animatorSet
+    }
+
+    fun createBottomBarUpAnimator(view: View) {
+        val transition = ObjectAnimator.ofFloat(view, "translationY", 74f, 0f, 0f)
+        transition.duration = 300
+        transition.start()
+    }
+
+    fun createSlideAnimator(view: View) {
+        val transition = ObjectAnimator.ofFloat(view, "translationX", 0f, 0f, 20f)
+        transition.duration = 300
+        transition.start()
     }
 
     fun enterSelectionMode() {

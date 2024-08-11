@@ -32,6 +32,8 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
             adapter.exitSelectionMode()
             binding.selectText.visibility = View.GONE
             (activity as MainActivity).binding.bottomBar.visibility = View.VISIBLE
+            adapter.createBottomBarUpAnimator((activity as MainActivity).binding.bottomBar)
+            binding.bottomBarController.visibility = View.GONE
         }
     }
 
@@ -42,8 +44,7 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = TimelineFragmentBinding.inflate(inflater, container, false)
         return binding.root
@@ -52,13 +53,13 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         adapter = TimelineAdapter(requireContext()).apply {
             registerOnItemClickListener(this@TimelineFragment)
             registerOnItemLongClickListener(this@TimelineFragment)
             registerOnSelectionChangedListener(this@TimelineFragment)
         }
 
+        //hold all select and deselect
         savedInstanceState?.let {
             val selectedUris =
                 it.getStringArray("selected_uris")?.map { uri -> Uri.parse(uri) } ?: emptyList()
@@ -72,14 +73,13 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
             }
         }
 
-        val spanCount =
-            if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) adapter.getSpanCountForOrientation(
-                binding.rcvTimelineFragment
-            ) else adapter.getSpanCountForOrientation(binding.rcvTimelineFragment)
+        val spanCount = adapter.getSpanCountForOrientation(binding.rcvTimelineFragment)
         val gridLayoutManager = GridLayoutManager(requireContext(), spanCount).apply {
             spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
                 override fun getSpanSize(position: Int): Int {
-                    return if (adapter.getItemViewType(position) == TimelineAdapter.VIEW_TYPE_HEADER) spanCount else 1
+                    return if (
+                        adapter.getItemViewType(position) == TimelineAdapter.VIEW_TYPE_HEADER
+                    ) spanCount else 1
                 }
             }
         }
@@ -94,6 +94,7 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
             }
         }
 
+        //drag to select
         dragSelectTouchListener = DragSelectTouchListener.create(requireContext(), adapter)
         binding.rcvTimelineFragment.addOnItemTouchListener(dragSelectTouchListener)
 
@@ -117,21 +118,20 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
         val itemSpacing =
             resources.getDimensionPixelSize(R.dimen.item_spacing) // Thêm giá trị khoảng cách trong res/values/dimens.xml
 
-        binding.rcvTimelineFragment.addItemDecoration(
-            object : RecyclerView.ItemDecoration() {
-                override fun getItemOffsets(
-                    outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State
-                ) {
-                    outRect.set(
-                        itemSpacing, // left
-                        itemSpacing, // top
-                        itemSpacing, // right
-                        itemSpacing // bottom
-                    )
-                }
+        binding.rcvTimelineFragment.addItemDecoration(object : RecyclerView.ItemDecoration() {
+            override fun getItemOffsets(
+                outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State
+            ) {
+                outRect.set(
+                    itemSpacing, // left
+                    itemSpacing, // top
+                    itemSpacing, // right
+                    itemSpacing // bottom
+                )
             }
-        )
+        })
     }
+
     private fun updateSelectedCount(count: Int) {
         if (count == 0) {
             binding.selectText.visibility = View.VISIBLE
@@ -157,14 +157,15 @@ class TimelineFragment : Fragment(), TimelineAdapter.OnItemClickListener,
         val videoUris = videoUriPositions.map { it.second }
 
         val fragment = ViewPagerFragment.newInstance(videoUris, selectedUri)
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.main, fragment)
-            .addToBackStack(null)
+        parentFragmentManager.beginTransaction().replace(R.id.main, fragment).addToBackStack(null)
             .commit()
     }
 
     override fun onItemLongClick(position: Int) {
         dragSelectTouchListener.setIsActive(true, position)
+        binding.bottomBarController.visibility = View.VISIBLE
+        adapter.createBottomBarUpAnimator(binding.bottomBarController)
+        (activity as MainActivity).binding.bottomBar.visibility = View.GONE
     }
 
     override fun onSelectionChanged(selectedCount: Int) {
